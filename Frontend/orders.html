@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders — SnackDen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+        <img src="amrita_logo.png" alt="Amrita">
+        <div>
+            <span class="brand-name">SnackDen</span>
+            <span class="brand-sub">Amrita Campus Marketplace</span>
+        </div>
+    </a>
+    <a href="index.html" class="nav-link">🏠 Home</a>
+    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="page">
+    <p class="section-heading">📦 My Orders</p>
+    <div id="orders" style="max-width:760px; margin:0 auto;"></div>
+</div>
+
+<script src="api.js"></script>
+<script src="orders.js"></script>
+</body>
+</html>

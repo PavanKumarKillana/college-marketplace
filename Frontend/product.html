@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product — SnackDen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+        <img src="amrita_logo.png" alt="Amrita">
+        <div>
+            <span class="brand-name">SnackDen</span>
+            <span class="brand-sub">Amrita Campus Marketplace</span>
+        </div>
+    </a>
+    <a href="index.html"  class="nav-link">🏠 Home</a>
+    <a href="orders.html" class="nav-link">📦 My Orders</a>
+    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="page">
+    <div id="product-box" style="max-width:660px; margin:0 auto;"></div>
+
+    <!-- Reviews -->
+    <div class="card" style="max-width:660px; margin:16px auto 0;">
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom:14px;">⭐ Reviews</h3>
+        <div class="star-picker" aria-label="Choose rating">
+            <button type="button" onclick="selectRating(1)" aria-label="1 star">★</button>
+            <button type="button" onclick="selectRating(2)" aria-label="2 stars">★</button>
+            <button type="button" onclick="selectRating(3)" aria-label="3 stars">★</button>
+            <button type="button" onclick="selectRating(4)" aria-label="4 stars">★</button>
+            <button type="button" onclick="selectRating(5)" aria-label="5 stars">★</button>
+        </div>
+        <input type="hidden" id="rating" value="5">
+        <span id="rating-text" class="rating-help">5 out of 5</span>
+        <textarea id="comment" class="input-field" placeholder="Write your review…" style="margin-top:10px;"></textarea>
+        <button class="btn btn-primary" style="margin-top:10px; width:100%;" onclick="submitReview()">
+            Submit Review
+        </button>
+        <div id="reviews" style="margin-top:16px;"></div>
+    </div>
+</div>
+
+<script src="api.js"></script>
+<script src="product.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard — SnackDen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+        <img src="amrita_logo.png" alt="Amrita">
+        <div>
+            <span class="brand-name">SnackDen</span>
+            <span class="brand-sub">Amrita Campus Marketplace</span>
+        </div>
+    </a>
+    <a href="index.html"  class="nav-link">🏠 Shop</a>
+    <a href="orders.html" class="nav-link">📦 Orders</a>
+    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="page">
+
+    <p style="color:var(--text-2); font-size:0.85rem; margin-bottom:20px;">
+        🏪 Sell snacks from your room. Your listings appear on the home page for all campus buyers.
+    </p>
+
+    <!-- My Shop Settings -->
+    <div class="card seller-form" style="margin-bottom:16px;">
+        <h2 class="section-title" style="margin-top:0;">My Shop Settings</h2>
+
+        <span class="input-label">Store name</span>
+        <input id="store-name" class="input-field" placeholder="e.g. Room 214 Snacks">
+
+        <span class="input-label">Room number</span>
+        <input id="store-room" class="input-field" placeholder="e.g. C-214">
+
+        <span class="input-label">UPI ID</span>
+        <input id="upi-id" class="input-field" placeholder="e.g. yourname@okaxis">
+
+        <span class="input-label">UPI QR Code image (buyers scan this to pay)</span>
+        <input id="upi-qr" class="input-field" type="file" accept="image/png,image/jpeg,image/webp">
+        <div class="image-preview-wrap" id="upi-qr-wrap">
+            <img id="upi-qr-preview" alt="QR preview">
+            <span style="font-size:0.78rem; color:var(--text-2);">QR code preview</span>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top:14px; width:100%;" onclick="saveShop()">
+            💾 Save Shop Settings
+        </button>
+    </div>
+
+    <!-- Add / Edit Product -->
+    <div class="card seller-form" style="margin-bottom:16px;">
+        <h2 class="section-title" style="margin-top:0;">Add / Edit Product</h2>
+        <input type="hidden" id="edit-id" value="">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+                <span class="input-label">Product name</span>
+                <input id="p-name" class="input-field" placeholder="e.g. Lays Classic">
+            </div>
+            <div>
+                <span class="input-label">Price (₹)</span>
+                <input id="p-price" class="input-field" type="number" placeholder="20">
+            </div>
+        </div>
+
+        <span class="input-label">Description</span>
+        <textarea id="p-desc" class="input-field" placeholder="Short description…"></textarea>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+                <span class="input-label">Category</span>
+                <input id="p-cat" class="input-field" placeholder="Snacks, Drinks…">
+            </div>
+            <div>
+                <span class="input-label">Stock quantity</span>
+                <input id="p-stock" class="input-field" type="number" placeholder="10">
+            </div>
+        </div>
+
+        <span class="input-label">Delivery charge (₹) — 0 if free</span>
+        <input id="p-delivery-charge" class="input-field" type="number" placeholder="0">
+
+        <span class="input-label">Product image</span>
+        <input id="p-image" class="input-field" type="file" accept="image/png,image/jpeg,image/webp">
+        <div class="image-preview-wrap" id="p-image-wrap">
+            <img id="p-image-preview" alt="Product preview">
+            <span style="font-size:0.78rem; color:var(--text-2);">Image preview</span>
+        </div>
+
+        <div style="margin-top:10px; display:flex; gap:20px; flex-wrap:wrap;">
+            <label class="checkbox-row">
+                <input type="checkbox" id="p-pickup" checked> Pickup available
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" id="p-delivery" checked> Delivery available
+            </label>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
+            <button class="btn btn-primary" onclick="saveProduct()">💾 Save Product</button>
+            <button class="btn btn-secondary" onclick="clearProductForm()">✕ Clear form</button>
+        </div>
+    </div>
+
+    <!-- My Products -->
+    <p class="section-heading" style="margin-top:24px;">My Products</p>
+    <div id="my-products" class="grid" style="margin-bottom:30px;"></div>
+
+    <!-- Incoming Orders -->
+    <p class="section-heading">Incoming Orders</p>
+    <div id="seller-orders" style="max-width:800px;"></div>
+
+</div>
+
+<script src="api.js"></script>
+<script src="seller.js"></script>
+</body>
+</html>

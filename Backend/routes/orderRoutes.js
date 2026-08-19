@@ -1,0 +1,13 @@
+const express=require("express")
+const {verifyToken,requireSeller}=require("../middleware/authMiddleware")
+const orderController=require("../controllers/orderController")
+const {uploadPaymentScreenshot}=require("../middleware/uploadMiddleware")
+const router=express.Router()
+router.post("/",verifyToken,orderController.placeOrder)
+router.get("/",verifyToken,orderController.myOrders)
+router.get("/seller/list",verifyToken,requireSeller,orderController.sellerOrders)
+router.post("/:id/pay",verifyToken,uploadPaymentScreenshot.single("payment_screenshot"),orderController.confirmPayment)
+router.post("/:id/verify-payment",verifyToken,requireSeller,orderController.verifyPayment)
+router.post("/:id/reject-payment",verifyToken,requireSeller,orderController.rejectPayment)
+router.put("/:id/status",verifyToken,requireSeller,orderController.updateStatus)
+module.exports=router

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnackDen — Amrita Campus Marketplace</title>
+    <meta name="description" content="Buy and sell snacks, food and daily essentials within your Amrita hostel campus. Room delivery available.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── NAVBAR ─────────────────────────────── -->
+<nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+        <img src="amrita_logo.png" alt="Amrita University">
+        <div>
+            <span class="brand-name">SnackDen</span>
+            <span class="brand-sub">Amrita Campus Marketplace</span>
+        </div>
+    </a>
+
+    <span id="role-label" class="navbar-role" style="display:none;"></span>
+
+    <a href="index.html"   class="nav-link">🏠 Home</a>
+    <a href="orders.html"  class="nav-link">📦 My Orders</a>
+
+    <a id="seller-link" href="seller.html" class="nav-link" style="display:none;">
+        🏪 My Shop
+    </a>
+
+    <button id="become-seller-btn" class="nav-btn nav-btn-ghost" style="display:none;"
+            onclick="becomeSeller()">
+        + Sell on SnackDen
+    </button>
+
+    <a id="admin-link" href="admin.html" class="nav-link" style="display:none;">
+        ⚙️ Admin
+    </a>
+
+    <button class="nav-cart-btn" onclick="viewCart()" id="cart-toggle-btn">
+        🛒 Cart <span class="cart-badge" id="cart-count">0</span>
+    </button>
+
+    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+</nav>
+
+<!-- ── TOAST ──────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── CART PANEL ─────────────────────────── -->
+<div class="page" style="padding-bottom:0;">
+    <div id="cart-panel">
+        <h2>🛒 Your Cart</h2>
+        <div id="cart-list"></div>
+        <hr class="order-divider">
+        <a class="btn btn-primary btn-full" href="checkout.html" style="margin-top:6px;">
+            Proceed to Checkout →
+        </a>
+    </div>
+</div>
+
+<!-- ── MAIN CONTENT ───────────────────────── -->
+<div class="page">
+
+    <!-- Filter bar — compact inline -->
+    <div class="filter-bar">
+        <span style="font-size:1rem;">🔍</span>
+        <input type="text" id="search-box" placeholder="Search snacks, drinks…"
+               onkeydown="if(event.key==='Enter') loadProducts()">
+        <div class="filter-divider"></div>
+        <select id="category-box" onchange="loadProducts()">
+            <option value="">All categories</option>
+        </select>
+        <button class="filter-search-btn" onclick="loadProducts()">Search</button>
+    </div>
+
+    <!-- Products heading -->
+    <p class="section-heading">🔥 Available Now</p>
+
+    <!-- Grid -->
+    <div id="products-container" class="grid"></div>
+
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

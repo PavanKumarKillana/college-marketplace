@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout — SnackDen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+        <img src="amrita_logo.png" alt="Amrita">
+        <div>
+            <span class="brand-name">SnackDen</span>
+            <span class="brand-sub">Amrita Campus Marketplace</span>
+        </div>
+    </a>
+    <a href="index.html"  class="nav-link">🏠 Home</a>
+    <a href="orders.html" class="nav-link">📦 My Orders</a>
+    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="page">
+    <p class="section-heading">Checkout</p>
+
+    <div style="max-width:680px; margin:0 auto;">
+
+        <!-- Order summary card -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:14px;">🧾 Order Summary</h3>
+            <div id="cart-preview">
+                <div class="spinner-wrap"><div class="spinner"></div></div>
+            </div>
+            <hr class="order-divider">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.88rem; color:var(--text-2);">Grand Total</span>
+                <span id="total-line" style="font-size:1.3rem; font-weight:800; color:var(--brand);">₹0</span>
+            </div>
+        </div>
+
+        <!-- Delivery or Pickup -->
+        <div class="card" style="margin-bottom:16px;">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:10px;">🚚 How do you want it?</h3>
+            <div class="fulfillment-row">
+                <div class="fulfillment-opt active" id="opt-pickup" onclick="selectFulfillment('pickup')">
+                    <span class="opt-icon">🏃</span>
+                    Pickup from seller
+                </div>
+                <div class="fulfillment-opt" id="opt-delivery" onclick="selectFulfillment('delivery')">
+                    <span class="opt-icon">🛵</span>
+                    Room delivery
+                </div>
+            </div>
+            <input type="hidden" id="fulfillment" value="pickup">
+
+            <div id="room-wrap" style="display:none; margin-top:10px;">
+                <span class="input-label">Your room number</span>
+                <input type="text" id="buyer-room" placeholder="e.g. C-204" class="input-field">
+            </div>
+        </div>
+
+        <!-- Place Order -->
+        <button class="btn btn-primary btn-full" onclick="placeOrder()"
+                style="padding:14px; font-size:1rem;">
+            ✅ Place Order
+        </button>
+
+    </div>
+</div>
+
+<script src="api.js"></script>
+<script src="checkout.js"></script>
+</body>
+</html>
