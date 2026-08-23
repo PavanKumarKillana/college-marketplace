@@ -30,7 +30,17 @@ function verifyToken(req,res,next){
         }
         req.userId=decoded.id
         req.userRole=decoded.role
-        next()
+
+        // Dynamic DB check: ensure account is active and not suspended
+        userModel.getUserById(req.userId,(uErr,result)=>{
+            if(uErr || result.length===0){
+                return res.json({ success:false, message:"User not found" })
+            }
+            if(result[0].is_blocked === 1){
+                return res.json({ success:false, message:"Your account has been suspended by an administrator." })
+            }
+            next()
+        })
     })
 }
 
@@ -43,6 +53,12 @@ function requireSeller(req,res,next){
             })
         }
         const user=result[0]
+        if(user.is_blocked === 1){
+            return res.json({
+                success:false,
+                message:"Your account has been suspended by an administrator."
+            })
+        }
         if(user.role!=="seller"){
             return res.json({
                 success:false,
@@ -68,6 +84,12 @@ function requireAdmin(req,res,next){
             return res.json({
                 success:false,
                 message:"User not found"
+            })
+        }
+        if(result[0].is_blocked === 1){
+            return res.json({
+                success:false,
+                message:"Your account has been suspended by an administrator."
             })
         }
         if(result[0].role!=="admin"){

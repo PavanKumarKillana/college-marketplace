@@ -1,3 +1,4 @@
+const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3")
 require("./config/db")
 const express=require('express')
 const cors=require("cors")
@@ -12,7 +13,35 @@ const adminRoutes=require("./routes/adminRoutes")
 const app=express()
 app.use(cors())
 app.use(express.json())
-app.use("/uploads",express.static(path.join(__dirname,"uploads")))
+const s3 = new S3Client({
+    region: process.env.AWS_REGION || "ap-south-1"
+})
+
+const S3_BUCKET = process.env.S3_BUCKET || "college-marketplace-assets-523109312493"
+
+app.get(/^\/uploads\/(.+)$/, async (req, res) => {
+    try {
+        const key = "uploads/" + req.params[0]
+
+        const result = await s3.send(new GetObjectCommand({
+            Bucket: S3_BUCKET,
+            Key: key
+        }))
+
+        if (result.ContentType) {
+            res.setHeader("Content-Type", result.ContentType)
+        }
+
+        if (result.ContentLength !== undefined) {
+            res.setHeader("Content-Length", result.ContentLength)
+        }
+
+        result.Body.pipe(res)
+    } catch (err) {
+        console.error("S3 download failed:", err.message)
+        res.status(404).json({ success: false, message: "File not found" })
+    }
+})
 app.get('/',(req,res)=>{
     res.send("E-commerce API is running!")
 })

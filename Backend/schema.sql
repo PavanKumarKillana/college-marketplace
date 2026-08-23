@@ -85,5 +85,32 @@ CREATE TABLE IF NOT EXISTS seller_reviews (
 ALTER TABLE orders ADD COLUMN payment_utr VARCHAR(100) NULL;
 ALTER TABLE orders ADD COLUMN payment_screenshot_url VARCHAR(500) NULL;
 
+-- User block status
+ALTER TABLE users ADD COLUMN is_blocked TINYINT NOT NULL DEFAULT 0;
+
+-- Password resets table
+CREATE TABLE IF NOT EXISTS password_resets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    otp_code VARCHAR(10) NOT NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    expires_at DATETIME NOT NULL,
+    resend_available_at DATETIME NOT NULL,
+    is_verified TINYINT NOT NULL DEFAULT 0,
+    reset_token VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seller strikes table
+CREATE TABLE IF NOT EXISTS seller_strikes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    seller_id INT NOT NULL,
+    admin_id INT NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Older demo records that used the old button have no proof. Make them pending again.
 UPDATE orders SET payment_status='pending' WHERE payment_status='buyer_confirmed';

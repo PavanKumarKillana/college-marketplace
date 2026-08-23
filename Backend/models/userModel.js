@@ -43,9 +43,32 @@ function updateUserRole(id,role,callback){
         }
     })
 }
+function updateUserPassword(email,hashedPassword,callback){
+    db.query("UPDATE users SET password=? WHERE email=?",[hashedPassword,email],(err,result)=>{
+        if(err){
+            callback(err,null)
+        }
+        else{
+            callback(null,result)
+        }
+    })
+}
+function setUserBlockStatus(id,isBlocked,callback){
+    db.query("UPDATE users SET is_blocked=? WHERE id=?",[isBlocked,id],(err,result)=>{
+        if(err){
+            callback(err,null)
+        }
+        else{
+            callback(null,result)
+        }
+    })
+}
 module.exports={
     createUser,
     getUserByEmail,
     getUserById,
-    updateUserRole
+    updateUserRole,
+    updateUserPassword,
+    setUserBlockStatus
 }
+

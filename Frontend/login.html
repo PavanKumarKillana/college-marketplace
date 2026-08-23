@@ -27,12 +27,62 @@
             <input type="email" id="login-email" placeholder="College email" class="input-field">
             <input type="password" id="login-password" placeholder="Password" class="input-field"
                    onkeydown="if(event.key==='Enter') loginUser()">
-            <button class="btn btn-primary btn-full" style="margin-top:14px;" onclick="loginUser()">
+            <div style="text-align:right; margin-top:6px;">
+                <button class="toggle-link" style="font-size:0.8rem; color:var(--text-3);" onclick="showForgotForm()">Forgot password?</button>
+            </div>
+            <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="loginUser()">
                 Login →
             </button>
             <p class="auth-footer">
                 New to SnackDen?
                 <button class="toggle-link" onclick="toggleAuth()">Create account</button>
+            </p>
+        </div>
+
+        <!-- FORGOT PASSWORD FORM -->
+        <div id="forgot-form" style="display:none;">
+            <h3>🔑 Reset Password</h3>
+
+            <!-- Step 1: Send OTP -->
+            <div id="forgot-step-1">
+                <p style="font-size:0.82rem; color:var(--text-2); margin-bottom:10px;">
+                    Enter your college email to receive a 6-digit verification code.
+                </p>
+                <input type="email" id="forgot-email" placeholder="College email" class="input-field">
+                <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="sendOtp()">
+                    Send OTP Code →
+                </button>
+            </div>
+
+            <!-- Step 2: Verify OTP -->
+            <div id="forgot-step-2" style="display:none;">
+                <p style="font-size:0.82rem; color:var(--text-2); margin-bottom:10px;">
+                    Enter the 6-digit OTP code sent to your email.
+                </p>
+                <div id="otp-demo-alert" style="display:none; padding:8px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:6px; font-size:0.8rem; color:var(--green); margin-bottom:10px;"></div>
+                <input type="text" id="otp-input" placeholder="Enter 6-digit OTP" class="input-field" maxlength="6">
+                <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="verifyOtpCode()">
+                    Verify OTP →
+                </button>
+                <div style="text-align:center; margin-top:8px;">
+                    <button class="toggle-link" style="font-size:0.78rem; color:var(--text-3);" onclick="sendOtp()">Resend OTP Code</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Reset Password -->
+            <div id="forgot-step-3" style="display:none;">
+                <p style="font-size:0.82rem; color:var(--text-2); margin-bottom:10px;">
+                    OTP verified! Enter your new password below.
+                </p>
+                <input type="password" id="new-password-input" placeholder="New Password (min 6 chars)" class="input-field">
+                <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="submitNewPassword()">
+                    Save New Password & Login →
+                </button>
+            </div>
+
+            <p class="auth-footer" style="margin-top:16px;">
+                Remembered your password?
+                <button class="toggle-link" onclick="showLoginForm()">Back to Login</button>
             </p>
         </div>
 
@@ -43,7 +93,10 @@
             <input type="email"    id="reg-email"    placeholder="College email"           class="input-field">
             <input type="password" id="reg-password" placeholder="Password"                class="input-field">
             <input type="text"     id="reg-room"     placeholder="Room number (optional)"  class="input-field">
-            <p style="font-size:0.78rem; color:var(--text-2); margin:8px 0;">
+            <p style="font-size:0.78rem; color:var(--text-2); margin:8px 0 4px 0;">
+                📧 <strong>Notice:</strong> Please use an email address you have access to. It is required if you ever need to recover your password.
+            </p>
+            <p style="font-size:0.78rem; color:var(--text-2); margin:0 0 10px 0;">
                 Everyone joins as a <strong>shopper</strong>. You can become a seller anytime from the home page.
             </p>
             <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="registerUser()">

@@ -3,28 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin</title>
+    <title>Admin Control Center</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="card nav-links" style="margin-bottom: 30px; padding: 15px 30px;">
-        <a href="index.html">Home</a>
-        <button class="cart-btn small-btn" onclick="logout()" style="background:#ff4b2b;">Logout</button>
-    </nav>
-    <div class="card" style="max-width:900px; margin:0 auto 20px auto;">
-        <h2>Users</h2>
-        <div id="users"></div>
+
+<nav class="card nav-links" style="margin-bottom:30px;padding:15px 30px;">
+    <a href="index.html">Home</a>
+    <button class="cart-btn small-btn"
+            onclick="logout()"
+            style="background:#ff4b2b;">
+        Logout
+    </button>
+</nav>
+
+<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
+    <h2>⚙️ Admin Control Center</h2>
+    <p style="color:var(--text-2);">
+        Manage users, products and orders.
+    </p>
+</div>
+
+<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
+    <h2>👥 Users</h2>
+    <div id="users">
+        <p>Loading users...</p>
     </div>
-    <div class="card" style="max-width:900px; margin:0 auto 20px auto;">
-        <h2>Hide a product</h2>
-        <input id="hide-id" class="input-field" placeholder="Product ID">
-        <button class="cart-btn" onclick="hideProduct()">Hide product</button>
+</div>
+
+<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
+    <h2>📦 Products</h2>
+    <div id="products">
+        <p>Loading products...</p>
     </div>
-    <div class="card" style="max-width:900px; margin:0 auto;">
-        <h2>Orders</h2>
-        <div id="orders"></div>
+</div>
+
+<div class="card" style="max-width:1100px;margin:0 auto;">
+    <h2>🧾 Orders</h2>
+    <div id="orders">
+        <p>Loading orders...</p>
     </div>
-    <script src="api.js"></script>
-    <script src="admin.js"></script>
+</div>
+
+<script src="api.js"></script>
+<script src="admin.js"></script>
+
 </body>
 </html>

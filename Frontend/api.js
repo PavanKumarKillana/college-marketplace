@@ -1,6 +1,6 @@
 /* api.js — shared helpers used by every page */
 
-const API = "http://localhost:3000"
+const API = ""
 
 /* ── Auth helpers ──────────────────────────── */
 function getToken() { return localStorage.getItem("token") }

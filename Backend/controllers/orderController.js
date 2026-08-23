@@ -148,14 +148,16 @@ function attachItems(orders,index,res){
 
 function confirmPayment(req,res){
     const utr=(req.body.payment_utr || "").trim()
-    if(!utr){
-        return res.json({success:false,message:"Please enter UPI transaction ID (UTR)"})
-    }
+
+    // Payment screenshot is mandatory.
+    // UPI transaction ID / UTR is optional.
     if(!req.file){
         return res.json({success:false,message:"Please upload your payment screenshot"})
     }
+
     const screenshotUrl="/uploads/payment-proofs/"+req.file.filename
-    orderModel.markPaid(req.params.id,req.userId,utr,screenshotUrl,(err,result)=>{
+
+    orderModel.markPaid(req.params.id,req.userId,utr || null,screenshotUrl,(err,result)=>{
         if(err){
             return res.json({success:false,message:"cannot update payment"})
         }

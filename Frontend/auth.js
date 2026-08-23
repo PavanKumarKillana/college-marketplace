@@ -1,8 +1,13 @@
 /* auth.js */
 
+let resetTokenStorage = ""
+let resetEmailStorage = ""
+
 function toggleAuth() {
     const loginForm    = document.getElementById("login-form")
     const registerForm = document.getElementById("register-form")
+    const forgotForm   = document.getElementById("forgot-form")
+    forgotForm.style.display = "none"
     if (loginForm.style.display === "none") {
         loginForm.style.display    = "block"
         registerForm.style.display = "none"
@@ -10,6 +15,21 @@ function toggleAuth() {
         loginForm.style.display    = "none"
         registerForm.style.display = "block"
     }
+}
+
+function showForgotForm() {
+    document.getElementById("login-form").style.display = "none"
+    document.getElementById("register-form").style.display = "none"
+    document.getElementById("forgot-form").style.display = "block"
+    document.getElementById("forgot-step-1").style.display = "block"
+    document.getElementById("forgot-step-2").style.display = "none"
+    document.getElementById("forgot-step-3").style.display = "none"
+}
+
+function showLoginForm() {
+    document.getElementById("login-form").style.display = "block"
+    document.getElementById("register-form").style.display = "none"
+    document.getElementById("forgot-form").style.display = "none"
 }
 
 function loginUser() {
@@ -62,3 +82,97 @@ function registerUser() {
     })
     .catch(() => toast("Server offline — is the backend running?", "error"))
 }
+
+/* FORGOT PASSWORD OTP HANDLERS */
+
+function sendOtp() {
+    const email = document.getElementById("forgot-email").value.trim()
+    if (!email) {
+        toast("Please enter your email", "error")
+        return
+    }
+
+    fetch(API + "/api/users/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            resetEmailStorage = email
+            toast(data.message, "success")
+            document.getElementById("forgot-step-1").style.display = "none"
+            document.getElementById("forgot-step-2").style.display = "block"
+
+            const demoBox = document.getElementById("otp-demo-alert")
+            if (data.otp_demo) {
+                demoBox.style.display = "block"
+                demoBox.innerHTML = `🔑 <strong>OTP Code:</strong> <span style="letter-spacing:2px; font-weight:700;">${data.otp_demo}</span>`
+            } else {
+                demoBox.style.display = "none"
+            }
+        } else {
+            toast(data.message || "Failed to send OTP", "error")
+        }
+    })
+    .catch(() => toast("Server error sending OTP", "error"))
+}
+
+function verifyOtpCode() {
+    const otp = document.getElementById("otp-input").value.trim()
+    if (!otp) {
+        toast("Please enter the 6-digit OTP code", "error")
+        return
+    }
+
+    fetch(API + "/api/users/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmailStorage, otp })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            resetTokenStorage = data.reset_token
+            toast("OTP verified successfully!", "success")
+            document.getElementById("forgot-step-2").style.display = "none"
+            document.getElementById("forgot-step-3").style.display = "block"
+        } else {
+            toast(data.message || "Invalid OTP code", "error")
+        }
+    })
+    .catch(() => toast("Server error verifying OTP", "error"))
+}
+
+function submitNewPassword() {
+    const new_password = document.getElementById("new-password-input").value
+    if (!new_password || new_password.length < 6) {
+        toast("Password must be at least 6 characters long", "error")
+        return
+    }
+
+    fetch(API + "/api/users/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            email: resetEmailStorage,
+            reset_token: resetTokenStorage,
+            new_password
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            toast("Password reset successful! Please log in.", "success")
+            setTimeout(() => {
+                showLoginForm()
+                document.getElementById("login-email").value = resetEmailStorage
+            }, 1000)
+        } else {
+            toast(data.message || "Failed to reset password", "error")
+        }
+    })
+    .catch(() => toast("Server error resetting password", "error"))
+}
+
