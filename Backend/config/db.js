@@ -13,123 +13,165 @@ db.connect((err)=>{
     }
     console.log("connected successfully")
 
-    // Run self-healing schema updates
+    // ── Column guards (idempotent — safe to run on every startup) ────────────
+
     db.query("SHOW COLUMNS FROM users LIKE 'is_blocked'", (err, res) => {
         if (!err && (!res || res.length === 0)) {
             db.query("ALTER TABLE users ADD COLUMN is_blocked TINYINT NOT NULL DEFAULT 0", (e) => {
-                if (e) console.error("Error adding is_blocked column:", e.message);
-                else console.log("Added is_blocked column to users table.");
-            });
+                if (e) console.error("Error adding is_blocked:", e.message)
+                else console.log("Added is_blocked to users.")
+            })
         }
-    });
+    })
 
-    const createResetsTable = `
-        CREATE TABLE IF NOT EXISTS password_resets (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            email VARCHAR(255) NOT NULL,
-            otp_code VARCHAR(10) NOT NULL,
-            attempts INT NOT NULL DEFAULT 0,
-            expires_at DATETIME NOT NULL,
-            resend_available_at DATETIME NOT NULL,
-            is_verified TINYINT NOT NULL DEFAULT 0,
-            reset_token VARCHAR(255) NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `;
-    db.query(createResetsTable, (err) => {
-        if (err) console.error("Error creating password_resets table:", err.message);
-    });
-
-    const createStrikesTable = `
-        CREATE TABLE IF NOT EXISTS seller_strikes (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            seller_id INT NOT NULL,
-            admin_id INT NOT NULL,
-            reason TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `;
-    db.query(createStrikesTable, (err) => {
-        if (err) console.error("Error creating seller_strikes table:", err.message);
-    });
-
-    // Create Hostels table
-    const createHostelsTable = `
-        CREATE TABLE IF NOT EXISTS hostels (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100) NOT NULL,
-            code VARCHAR(20) NOT NULL,
-            is_active TINYINT NOT NULL DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `;
-    db.query(createHostelsTable, (err) => {
-        if (err) console.error("Error creating hostels table:", err.message);
-        else {
-            // Seed initial hostels if empty
-            db.query("SELECT COUNT(*) AS total FROM hostels", (sErr, rows) => {
-                if (!sErr && rows && rows[0].total === 0) {
-                    const seedSql = `
-                        INSERT INTO hostels (name, code, is_active) VALUES 
-                        ('Amritam Hostel', 'AMR', 1),
-                        ('Anugraha Hostel', 'ANU', 1),
-                        ('Bhavani Hostel', 'BHV', 1)
-                    `;
-                    db.query(seedSql, () => console.log("Seeded default college hostels into database."));
-                }
-            });
-        }
-    });
-
-    // Add hostel_id column to users
     db.query("SHOW COLUMNS FROM users LIKE 'hostel_id'", (err, res) => {
         if (!err && (!res || res.length === 0)) {
             db.query("ALTER TABLE users ADD COLUMN hostel_id INT NULL", (e) => {
-                if (e) console.error("Error adding hostel_id column to users:", e.message);
-                else console.log("Added hostel_id column to users table.");
-            });
+                if (e) console.error("Error adding hostel_id to users:", e.message)
+                else console.log("Added hostel_id to users.")
+            })
         }
-    });
+    })
 
-    // Add hostel_id column to sellers
+    // Student academic year — completely separate from hostel/building
+    db.query("SHOW COLUMNS FROM users LIKE 'year'", (err, res) => {
+        if (!err && (!res || res.length === 0)) {
+            db.query("ALTER TABLE users ADD COLUMN year VARCHAR(20) NULL", (e) => {
+                if (e) console.error("Error adding year to users:", e.message)
+                else console.log("Added year column to users.")
+            })
+        }
+    })
+
     db.query("SHOW COLUMNS FROM sellers LIKE 'hostel_id'", (err, res) => {
         if (!err && (!res || res.length === 0)) {
             db.query("ALTER TABLE sellers ADD COLUMN hostel_id INT NULL", (e) => {
-                if (e) console.error("Error adding hostel_id column to sellers:", e.message);
-                else console.log("Added hostel_id column to sellers table.");
-            });
+                if (e) console.error("Error adding hostel_id to sellers:", e.message)
+                else console.log("Added hostel_id to sellers.")
+            })
         }
-    });
+    })
 
-    // Create Reports table
-    const createReportsTable = `
-        CREATE TABLE IF NOT EXISTS reports (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            reporter_id INT NOT NULL,
-            product_id INT NULL,
-            seller_id INT NULL,
-            reason VARCHAR(255) NOT NULL,
-            description TEXT NULL,
-            status VARCHAR(20) NOT NULL DEFAULT 'open',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `;
-    db.query(createReportsTable, (err) => {
-        if (err) console.error("Error creating reports table:", err.message);
-    });
+    // ── Static reference tables ──────────────────────────────────────────────
 
-    // Create Order Messages table
-    const createMessagesTable = `
-        CREATE TABLE IF NOT EXISTS order_messages (
+    db.query(`CREATE TABLE IF NOT EXISTS password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        otp_code VARCHAR(10) NOT NULL,
+        attempts INT NOT NULL DEFAULT 0,
+        expires_at DATETIME NOT NULL,
+        resend_available_at DATETIME NOT NULL,
+        is_verified TINYINT NOT NULL DEFAULT 0,
+        reset_token VARCHAR(255) NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => { if (err) console.error("password_resets:", err.message) })
+
+    db.query(`CREATE TABLE IF NOT EXISTS seller_strikes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        seller_id INT NOT NULL,
+        admin_id INT NOT NULL,
+        reason TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => { if (err) console.error("seller_strikes:", err.message) })
+
+    db.query(`CREATE TABLE IF NOT EXISTS reports (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        reporter_id INT NOT NULL,
+        product_id INT NULL,
+        seller_id INT NULL,
+        reason VARCHAR(255) NOT NULL,
+        description TEXT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'open',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => { if (err) console.error("reports:", err.message) })
+
+    db.query(`CREATE TABLE IF NOT EXISTS order_messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        sender_id INT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => { if (err) console.error("order_messages:", err.message) })
+
+    // ── Hostels table — Admin-managed data ───────────────────────────────────
+    //
+    // RULE: The server NEVER automatically deletes any hostel row on startup.
+    // Hostels are Admin-created and Admin-managed via the Admin UI.
+    // The one-time cleanup of legacy development hostels is tracked in
+    // db_migrations so it runs ONCE and NEVER again.
+
+    db.query(`CREATE TABLE IF NOT EXISTS hostels (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        code VARCHAR(20) NOT NULL UNIQUE,
+        is_active TINYINT NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+        if (err) { console.error("hostels table:", err.message); return }
+
+        // Migration tracker — each named migration runs EXACTLY ONCE
+        db.query(`CREATE TABLE IF NOT EXISTS db_migrations (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            order_id INT NOT NULL,
-            sender_id INT NOT NULL,
-            message TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `;
-    db.query(createMessagesTable, (err) => {
-        if (err) console.error("Error creating order_messages table:", err.message);
-    });
+            migration_name VARCHAR(100) NOT NULL UNIQUE,
+            ran_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`, (mErr) => {
+            if (mErr) { console.error("db_migrations:", mErr.message); return }
+
+            // ── ONE-TIME migration: remove legacy dev/fake hostels ────────────
+            // After this runs once and inserts the flag row, it will NEVER run
+            // again even after server restarts or redeployments.
+            db.query(
+                "SELECT id FROM db_migrations WHERE migration_name = 'remove_fake_dev_hostels'",
+                (checkErr, flagRows) => {
+                    if (checkErr || (flagRows && flagRows.length > 0)) {
+                        // Already ran — skip
+                        return
+                    }
+
+                    db.query(
+                        "SELECT id FROM hostels WHERE name IN ('Amritam Hostel','Anugraha Hostel','Bhavani Hostel')",
+                        (fErr, fakeRows) => {
+                            if (fErr || !fakeRows || fakeRows.length === 0) {
+                                // Fake hostels not present — mark done
+                                db.query("INSERT IGNORE INTO db_migrations (migration_name) VALUES ('remove_fake_dev_hostels')", () => {})
+                                return
+                            }
+                            const fakeIds = fakeRows.map(r => r.id)
+                            const ph = fakeIds.map(() => '?').join(',')
+
+                            // Step 1: unlink users
+                            db.query(`UPDATE users SET hostel_id = NULL WHERE hostel_id IN (${ph})`, fakeIds, () => {
+                                // Step 2: unlink sellers
+                                db.query(`UPDATE sellers SET hostel_id = NULL WHERE hostel_id IN (${ph})`, fakeIds, () => {
+                                    // Step 3: delete the fake hostel rows
+                                    db.query(`DELETE FROM hostels WHERE id IN (${ph})`, fakeIds, (dErr) => {
+                                        if (dErr) {
+                                            console.error("Migration remove_fake_dev_hostels failed:", dErr.message)
+                                        } else {
+                                            console.log("[Migration] Removed legacy dev hostels (Amritam/Anugraha/Bhavani). Will NOT run again.")
+                                            db.query("INSERT IGNORE INTO db_migrations (migration_name) VALUES ('remove_fake_dev_hostels')", () => {})
+                                        }
+                                    })
+                                })
+                            })
+                        }
+                    )
+                }
+            )
+
+            // ── Seed confirmed real campus hostels (idempotent) ──────────────
+            // INSERT only if the hostel does NOT already exist.
+            // This NEVER deletes or modifies any Admin-created hostel row.
+            const seedHostel = (name, code) => {
+                db.query(
+                    "INSERT INTO hostels (name, code, is_active) SELECT ?,?,1 WHERE NOT EXISTS (SELECT 1 FROM hostels WHERE code=? OR name=?)",
+                    [name, code, code, name],
+                    (sErr) => { if (sErr) console.error(`Hostel seed '${name}':`, sErr.message) }
+                )
+            }
+            seedHostel('Nachiketas Hostel', 'NCH')
+            seedHostel('Vyasa Hostel', 'VYS')
+        })
+    })
 })
 module.exports=db

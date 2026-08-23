@@ -31,10 +31,69 @@ fetch(API + "/api/users/me", { headers: authHeaders() })
         localStorage.setItem("is_seller", isSeller ? "1" : "0")
         if (me.role) localStorage.setItem("role", me.role)
         setupNav(isSeller, me.role || "buyer")
+
+        // Show banner if user hasn't set hostel OR year yet
+        const banner = document.getElementById("hostel-update-banner")
+        if (banner && (!me.hostel_id || !me.year)) {
+            banner.style.display = "block"
+        } else if (banner) {
+            banner.style.display = "none"
+        }
     })
     .catch(() => {
         setupNav(localStorage.getItem("is_seller") === "1", localStorage.getItem("role") || "buyer")
     })
+
+function promptSetHostel() {
+    const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"]
+    let yearMsg = "Select your Academic Year:\n\n"
+    years.forEach((y, idx) => { yearMsg += `${idx + 1}. ${y}\n` })
+    const yearChoice = prompt(yearMsg + "\nEnter number:")
+    const yearNum = parseInt(yearChoice, 10)
+    const selectedYear = (!isNaN(yearNum) && yearNum >= 1 && yearNum <= years.length)
+        ? years[yearNum - 1]
+        : null
+
+    fetch(API + "/api/hostels")
+        .then(r => r.json())
+        .then(hostels => {
+            if (!Array.isArray(hostels) || hostels.length === 0) {
+                alert("No active hostels found. Please contact admin.")
+                return
+            }
+            let msg = "Select your Hostel Building:\n\n"
+            hostels.forEach((h, idx) => {
+                msg += `${idx + 1}. ${h.name} (${h.code})\n`
+            })
+            const choice = prompt(msg + "\nEnter the number corresponding to your hostel:")
+            const num = parseInt(choice, 10)
+            if (isNaN(num) || num < 1 || num > hostels.length) {
+                alert("Invalid selection.")
+                return
+            }
+            const selectedHostel = hostels[num - 1]
+            const room = prompt(`Selected: ${selectedHostel.name}\nEnter your Room Number (optional):`) || ""
+
+            fetch(API + "/api/users/profile", {
+                method: "PUT",
+                headers: {
+                    ...authHeaders(),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ hostel_id: selectedHostel.id, room_number: room, year: selectedYear })
+            })
+            .then(r => r.json())
+            .then(data => {
+                toast(data.message, data.success ? "success" : "error")
+                if (data.success) {
+                    const banner = document.getElementById("hostel-update-banner")
+                    if (banner) banner.style.display = "none"
+                    loadProducts()
+                }
+            })
+        })
+        .catch(() => toast("Could not fetch hostel list", "error"))
+}
 
 /* ── Become seller ─────────────────────────── */
 function becomeSeller() {

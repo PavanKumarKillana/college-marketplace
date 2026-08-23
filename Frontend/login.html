@@ -92,15 +92,29 @@
             <input type="text"     id="reg-name"     placeholder="Your name"              class="input-field">
             <input type="email"    id="reg-email"    placeholder="College email"           class="input-field">
             <input type="password" id="reg-password" placeholder="Password"                class="input-field">
+
+            <select id="reg-year" class="input-field" style="margin-bottom:12px; background:var(--surface); color:var(--text);">
+                <option value="">-- Select Academic Year --</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+            </select>
+
             <select id="reg-hostel" class="input-field" style="margin-bottom:12px; background:var(--surface); color:var(--text);">
                 <option value="">-- Select Your Hostel / Building --</option>
             </select>
-            <input type="text"     id="reg-room"     placeholder="Room number (optional)"  class="input-field">
-            <p style="font-size:0.78rem; color:var(--text-2); margin:8px 0 4px 0;">
-                📧 <strong>Notice:</strong> Please use an email address you have access to. It is required if you ever need to recover your password.
+
+            <input type="text" id="reg-room" placeholder="Room number (optional)" class="input-field">
+
+            <p style="font-size:0.78rem; color:var(--text-2); margin:6px 0 2px 0;">
+                🎓 <strong>Year</strong> and 📍 <strong>Hostel</strong> are separate — a 3rd-year student can live in any hostel building.
             </p>
-            <p style="font-size:0.78rem; color:var(--text-2); margin:0 0 10px 0;">
-                Everyone joins as a <strong>shopper</strong>. You can become a seller anytime from the home page.
+            <p style="font-size:0.78rem; color:var(--text-2); margin:2px 0 2px 0;">
+                📍 Your hostel &amp; room number help coordinate order pickups and deliveries.
+            </p>
+            <p style="font-size:0.78rem; color:var(--text-2); margin:2px 0 10px 0;">
+                📧 Use an accessible email — needed for password recovery.
             </p>
             <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="registerUser()">
                 Create account →

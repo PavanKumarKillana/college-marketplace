@@ -32,19 +32,25 @@ function loadUsers() {
             const isBlocked = u.is_blocked === 1
             const isSeller = u.role === "seller" || u.seller_id
             const strikeCount = u.strike_count || 0
+            const hostelDisp = u.hostel_name ? `📍 ${escapeHtml(u.hostel_name)} (${escapeHtml(u.hostel_code || '')})` : `<span style="color:#f59e0b;">📍 Not Set</span>`
+
             return `
                 <div class="card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                     <div>
-                        <strong>#${u.id}</strong> ${escapeHtml(u.name || "Unnamed")}<br>
-                        ${escapeHtml(u.email)} | Role: <strong>${escapeHtml(u.role || "-")}</strong> | Room: ${escapeHtml(u.room_number || "-")}<br>
-                        Status: <strong style="color:${isBlocked ? 'var(--red)' : 'var(--green)'}">${isBlocked ? 'SUSPENDED/BLOCKED 🚫' : 'ACTIVE ✅'}</strong>
+                        <strong>#${u.id}</strong> ${escapeHtml(u.name || "Unnamed")} (${escapeHtml(u.email)})<br>
+                        Role: <strong>${escapeHtml(u.role || "-")}</strong> |
+                        Year: <strong>${u.year ? `🎓 ${escapeHtml(u.year)}` : '<span style="color:#f59e0b;">Not Set</span>'}</strong> |
+                        Hostel: <strong>${hostelDisp}</strong> |
+                        Room: <strong>${escapeHtml(u.room_number || "-")}</strong><br>
+                        Status: <strong style="color:${isBlocked ? 'var(--red)' : 'var(--green)'}">${isBlocked ? 'SUSPENDED 🚫' : 'ACTIVE ✅'}</strong>
                         ${
                             isSeller
-                            ? ` | Seller Shop: <strong>${escapeHtml(u.store_name || "Active")}</strong> | Strikes: <strong style="color:${strikeCount >= 3 ? 'var(--red)' : strikeCount > 0 ? '#f59e0b' : 'var(--green)'};">${strikeCount} / 3 ⚡</strong>`
+                            ? ` | Shop: <strong>${escapeHtml(u.store_name || "Active")}</strong> | Strikes: <strong style="color:${strikeCount >= 3 ? 'var(--red)' : strikeCount > 0 ? '#f59e0b' : 'var(--green)'};">${strikeCount}/3 ⚡</strong>`
                             : ''
                         }
                     </div>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="cart-btn" style="background:var(--indigo); font-size:0.8rem; padding:6px 10px;" onclick="changeUserHostelAdmin(${u.id}, '${escapeHtml(u.name || u.email)}')">📍 Edit Hostel</button>
                         ${
                             isSeller && u.seller_id
                             ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.8rem; padding:6px 10px;" onclick="issueSellerStrike(${u.seller_id}, '${escapeHtml(u.store_name || 'Seller')}')">⚡ Issue Strike</button>`
@@ -52,8 +58,8 @@ function loadUsers() {
                         }
                         ${
                             isBlocked
-                            ? `<button class="cart-btn" style="background:var(--green); font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 0)">✅ Unblock User</button>`
-                            : `<button class="cart-btn" style="background:#ff4b2b; font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 1)">🚫 Block User</button>`
+                            ? `<button class="cart-btn" style="background:var(--green); font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 0)">✅ Unblock</button>`
+                            : `<button class="cart-btn" style="background:#ff4b2b; font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 1)">🚫 Block</button>`
                         }
                     </div>
                 </div>
@@ -63,6 +69,58 @@ function loadUsers() {
     .catch(() => {
         document.getElementById("users").innerHTML = "<p>Failed to load users.</p>"
     })
+}
+
+function changeUserHostelAdmin(userId, userName) {
+    const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"]
+    let yearMsg = `Edit profile for ${userName}.\n\nSelect Academic Year:\n\n`
+    years.forEach((y, idx) => { yearMsg += `${idx + 1}. ${y}\n` })
+    yearMsg += `${years.length + 1}. Skip (keep existing year)\n`
+    const yearChoice = prompt(yearMsg + "\nEnter number:")
+    const yearNum = parseInt(yearChoice, 10)
+    const selectedYear = (!isNaN(yearNum) && yearNum >= 1 && yearNum <= years.length)
+        ? years[yearNum - 1]
+        : undefined   // undefined = don't change year; only skip if explicitly chosen
+
+    fetch(API + "/api/admin/hostels", { headers: authHeaders() })
+        .then(r => r.json())
+        .then(hostels => {
+            if (!Array.isArray(hostels) || hostels.length === 0) {
+                alert("No hostels found in database.")
+                return
+            }
+            let msg = `Select Hostel Building for ${userName}:\n\n`
+            hostels.forEach((h, idx) => {
+                msg += `${idx + 1}. ${h.name} (${h.code})\n`
+            })
+            const choice = prompt(msg + "\nEnter hostel number:")
+            const num = parseInt(choice, 10)
+            if (isNaN(num) || num < 1 || num > hostels.length) {
+                alert("Invalid hostel selection.")
+                return
+            }
+            const selectedHostel = hostels[num - 1]
+            const room = prompt(`Hostel: ${selectedHostel.name}\nEnter Room Number:`) || ""
+
+            const payload = { hostel_id: selectedHostel.id, room_number: room }
+            if (selectedYear !== undefined) payload.year = selectedYear
+
+            fetch(API + "/api/admin/users/" + userId + "/hostel", {
+                method: "PUT",
+                headers: {
+                    ...authHeaders(),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (typeof toast === "function") toast(data.message, data.success ? "success" : "error")
+                else alert(data.message)
+                if (data.success) loadUsers()
+            })
+            .catch(() => alert("Failed to update user location"))
+        })
 }
 
 function issueSellerStrike(sellerId, storeName) {

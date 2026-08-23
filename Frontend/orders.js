@@ -311,22 +311,19 @@ fetch(API + "/api/orders", {
 
                     <div>
 
-                        <p class="order-store">
-                            🏪 ${order.store_name}
-                            (Room ${order.seller_room || "-"})
+                        <p class="order-store" style="font-weight:600; font-size:1.05rem;">
+                            🏪 ${escapeHtml(order.store_name)}
                         </p>
 
-                        <p class="order-meta">
-                            Order #${order.id}
-                            · ${order.fulfillment_type}
-
+                        <div style="font-size:0.82rem; color:var(--text-2); margin:4px 0;">
+                            <strong>Order #${order.id}</strong> · Type: <span class="badge badge-blue">${order.fulfillment_type}</span><br>
                             ${
-                                order.buyer_room_number
-                                ? " → Room " +
-                                  order.buyer_room_number
-                                : ""
+                                order.fulfillment_type === 'delivery'
+                                ? `🛵 <strong>Deliver to (Buyer):</strong> ${[order.buyer_year, escapeHtml(order.buyer_hostel_name || 'Campus Hostel'), 'Room ' + escapeHtml(order.buyer_room || order.buyer_room_number || '-')].filter(Boolean).join(' • ')}<br>
+                                   🏃 <strong>Pickup from (Seller):</strong> ${escapeHtml(order.seller_hostel_name || 'Campus Hostel')} • Room ${escapeHtml(order.seller_room || '-')}`
+                                : `🏃 <strong>Pickup from Seller:</strong> ${escapeHtml(order.seller_hostel_name || 'Campus Hostel')} • Room ${escapeHtml(order.seller_room || '-')}`
                             }
-                        </p>
+                        </div>
 
                     </div>
 

@@ -229,8 +229,11 @@ function loadOrders() {
                 box.innerHTML += `<div class="order-card">
                     <div class="order-card-header">
                         <div>
-                            <p class="order-store">Order #${order.id} — ${order.buyer_name || order.buyer_email}</p>
-                            <p class="order-meta">${order.fulfillment_type}${order.buyer_room_number ? " → Room " + order.buyer_room_number : ""}</p>
+                            <p class="order-store" style="font-weight:700;">Order #${order.id} — ${escapeHtml(order.buyer_name || order.buyer_email)}</p>
+                            <div style="font-size:0.82rem; color:var(--text-2); margin:4px 0;">
+                                Type: <span class="badge badge-blue">${order.fulfillment_type}</span><br>
+                                📍 <strong>Buyer Location:</strong> ${[order.buyer_year, escapeHtml(order.buyer_hostel_name || 'Campus Hostel'), 'Room ' + escapeHtml(order.buyer_room || order.buyer_room_number || '-')].filter(v => v && v !== 'Room -').join(' • ')}
+                            </div>
                         </div>
                         <span class="order-total">₹${order.grand_total}</span>
                     </div>

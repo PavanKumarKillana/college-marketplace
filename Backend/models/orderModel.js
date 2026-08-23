@@ -43,10 +43,16 @@ function addOrderItem(orderId,item,callback){
 
 function getOrdersByBuyer(buyerId,callback){
     const query=`
-        SELECT orders.*, sellers.store_name, sellers.room_number AS seller_room,
-            sellers.upi_id, sellers.upi_qr_url
+        SELECT orders.*, 
+               sellers.store_name, sellers.room_number AS seller_room, sellers.upi_id, sellers.upi_qr_url,
+               sh.name AS seller_hostel_name, sh.code AS seller_hostel_code,
+               bu.name AS buyer_name, bu.email AS buyer_email, bu.room_number AS buyer_room, bu.year AS buyer_year,
+               bh.name AS buyer_hostel_name, bh.code AS buyer_hostel_code
         FROM orders
-        JOIN sellers ON orders.seller_id = sellers.id
+        LEFT JOIN sellers ON orders.seller_id = sellers.id
+        LEFT JOIN users bu ON orders.buyer_id = bu.id
+        LEFT JOIN hostels sh ON sellers.hostel_id = sh.id OR (SELECT u.hostel_id FROM users u WHERE u.id = sellers.user_id) = sh.id
+        LEFT JOIN hostels bh ON bu.hostel_id = bh.id
         WHERE orders.buyer_id=?
         ORDER BY orders.id DESC
     `
@@ -62,9 +68,16 @@ function getOrdersByBuyer(buyerId,callback){
 
 function getOrdersBySeller(sellerId,callback){
     const query=`
-        SELECT orders.*, users.name AS buyer_name, users.email AS buyer_email
+        SELECT orders.*, 
+               sellers.store_name, sellers.room_number AS seller_room,
+               sh.name AS seller_hostel_name, sh.code AS seller_hostel_code,
+               bu.name AS buyer_name, bu.email AS buyer_email, bu.room_number AS buyer_room, bu.year AS buyer_year,
+               bh.name AS buyer_hostel_name, bh.code AS buyer_hostel_code
         FROM orders
-        JOIN users ON orders.buyer_id = users.id
+        LEFT JOIN sellers ON orders.seller_id = sellers.id
+        LEFT JOIN users bu ON orders.buyer_id = bu.id
+        LEFT JOIN hostels sh ON sellers.hostel_id = sh.id OR (SELECT u.hostel_id FROM users u WHERE u.id = sellers.user_id) = sh.id
+        LEFT JOIN hostels bh ON bu.hostel_id = bh.id
         WHERE orders.seller_id=?
         ORDER BY orders.id DESC
     `
@@ -102,10 +115,16 @@ function getOrderItems(orderId,callback){
 
 function getAllOrders(callback){
     const query=`
-        SELECT orders.*, sellers.store_name, users.email AS buyer_email
+        SELECT orders.*, 
+               sellers.store_name, sellers.room_number AS seller_room,
+               sh.name AS seller_hostel_name,
+               bu.email AS buyer_email, bu.room_number AS buyer_room,
+               bh.name AS buyer_hostel_name
         FROM orders
-        JOIN sellers ON orders.seller_id = sellers.id
-        JOIN users ON orders.buyer_id = users.id
+        LEFT JOIN sellers ON orders.seller_id = sellers.id
+        LEFT JOIN users bu ON orders.buyer_id = bu.id
+        LEFT JOIN hostels sh ON sellers.hostel_id = sh.id OR (SELECT u.hostel_id FROM users u WHERE u.id = sellers.user_id) = sh.id
+        LEFT JOIN hostels bh ON bu.hostel_id = bh.id
         ORDER BY orders.id DESC
     `
     db.query(query,(err,result)=>{

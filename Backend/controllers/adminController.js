@@ -137,12 +137,25 @@ function getSellerStrikes(req, res) {
     })
 }
 
+function updateUserHostelAdmin(req,res){
+    const userId=req.params.id
+    const hostelId=req.body.hostel_id || null
+    const roomNumber=req.body.room_number || null
+    const year=req.body.year || null
+
+    userModel.updateUserHostel(userId, hostelId, roomNumber, year, (err)=>{
+        if(err) res.json({success:false, message:"Cannot update user location"})
+        else res.json({success:true, message:"User location updated!"})
+    })
+}
+
 module.exports={
     getUsers,
     getAllProducts,
     hideProduct,
     deleteProduct,
     toggleUserBlock,
+    updateUserHostelAdmin,
     getOrders,
     issueSellerStrike,
     getSellerStrikes

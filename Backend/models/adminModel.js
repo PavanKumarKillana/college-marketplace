@@ -2,10 +2,12 @@ const db=require("../config/db")
 
 function getAllUsers(callback){
     const query = `
-        SELECT u.id, u.email, u.name, u.role, u.room_number, u.is_blocked,
+        SELECT u.id, u.email, u.name, u.role, u.room_number, u.is_blocked, u.hostel_id, u.year,
+               h.name AS hostel_name, h.code AS hostel_code,
                s.id AS seller_id, s.store_name,
                (SELECT COUNT(*) FROM seller_strikes WHERE seller_id = s.id) AS strike_count
         FROM users u
+        LEFT JOIN hostels h ON u.hostel_id = h.id
         LEFT JOIN sellers s ON u.id = s.user_id
         ORDER BY u.id DESC
     `

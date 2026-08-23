@@ -29,6 +29,7 @@ async function registerUser (req,res){
     const name=req.body.name || null
     const roomNumber=req.body.room_number || null
     const hostelId=req.body.hostel_id || null
+    const year=req.body.year || null
     if(!email || !password){
         return res.json({
             success:false,
@@ -36,7 +37,7 @@ async function registerUser (req,res){
         })
     }
     const hashedPassword=await bcrypt.hash(password,10)
-    userModel.createUser(email,hashedPassword,name,"buyer",roomNumber,hostelId,(err,result)=>{
+    userModel.createUser(email,hashedPassword,name,"buyer",roomNumber,hostelId,year,(err,result)=>{
         if(err){
             return res.json({
                 success:false,
@@ -84,9 +85,8 @@ function getMe(req,res){
             return res.json({success:false,message:"User not found"})
         }
         const user=result[0]
-
-        if(user.is_blocked === 1){
-            return res.json({success:false,message:"Your account has been suspended by an administrator."})
+        if(user.is_blocked===1){
+            return res.json({success:false,message:"Account suspended"})
         }
 
         sellerModel.getSellerByUserId(req.userId,(sErr,sellers)=>{
@@ -97,10 +97,25 @@ function getMe(req,res){
                 name:user.name,
                 role:isSeller ? "seller" : user.role,
                 room_number:user.room_number,
+                hostel_id:user.hostel_id,
+                hostel_name:user.hostel_name,
+                hostel_code:user.hostel_code,
+                year:user.year,
                 is_seller:isSeller,
                 seller:sellers[0] || null
             })
         })
+    })
+}
+
+function updateProfile(req,res){
+    const hostelId = req.body.hostel_id || null
+    const roomNumber = req.body.room_number || null
+    const year = req.body.year || null
+
+    userModel.updateUserHostel(req.userId, hostelId, roomNumber, year, (err) => {
+        if(err) return res.json({success:false, message:"Failed to update profile"})
+        res.json({success:true, message:"Profile updated successfully!"})
     })
 }
 
@@ -309,6 +324,7 @@ module.exports={
     registerUser,
     loginUser,
     getMe,
+    updateProfile,
     becomeSeller,
     forgotPassword,
     verifyOtp,
