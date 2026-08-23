@@ -281,6 +281,170 @@ function loadOrders() {
 
 
 /* =========================
+   MODERATION REPORTS QUEUE
+========================= */
+
+function loadReports() {
+    fetch(API + "/api/admin/reports", {
+        headers: authHeaders()
+    })
+    .then(r => r.json())
+    .then(data => {
+        const box = document.getElementById("reports")
+        if (!box) return
+        if (!Array.isArray(data)) {
+            box.innerHTML = "<p>Unable to load moderation reports.</p>"
+            return
+        }
+        if (data.length === 0) {
+            box.innerHTML = "<p style='color:var(--text-3); font-size:0.88rem;'>No active reports. Community is clean! 🎉</p>"
+            return
+        }
+
+        box.innerHTML = data.map(r => {
+            const isOpen = r.status === 'open'
+            return `
+                <div class="card" style="margin-bottom:12px; border-left: 4px solid ${isOpen ? '#f59e0b' : 'var(--green)'}; background:var(--surface);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <strong>Report #${r.id}</strong> | Reporter: <strong>${escapeHtml(r.reporter_email || 'User')}</strong><br>
+                            Item/Reason: <strong style="color:var(--red);">${escapeHtml(r.reason)}</strong>
+                            ${r.product_title ? ` · Product: <strong>${escapeHtml(r.product_title)}</strong>` : ''}
+                            ${r.store_name ? ` · Seller: <strong>${escapeHtml(r.store_name)}</strong>` : ''}<br>
+                            Status: <strong style="color:${isOpen ? '#f59e0b' : 'var(--green)'};">${r.status.toUpperCase()}</strong>
+                        </div>
+                        ${
+                            isOpen
+                            ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                ${r.product_id ? `<button class="cart-btn" style="background:#ff4b2b; font-size:0.78rem; padding:6px 10px;" onclick="setProductStatus(${r.product_id}, 0)">👁️ Hide Product</button>` : ''}
+                                ${r.seller_id ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.78rem; padding:6px 10px;" onclick="issueSellerStrike(${r.seller_id}, '${escapeHtml(r.store_name || 'Seller')}')">⚡ Issue Strike</button>` : ''}
+                                <button class="cart-btn" style="background:var(--green); font-size:0.78rem; padding:6px 10px;" onclick="resolveReport(${r.id}, 'resolved')">✅ Resolve</button>
+                                <button class="cart-btn" style="background:var(--surface-2); color:var(--text); font-size:0.78rem; padding:6px 10px;" onclick="resolveReport(${r.id}, 'dismissed')">✖ Dismiss</button>
+                               </div>`
+                            : `<span style="font-size:0.8rem; color:var(--text-3);">Resolved</span>`
+                        }
+                    </div>
+                </div>
+            `
+        }).join("")
+    })
+    .catch(() => {
+        if (document.getElementById("reports")) document.getElementById("reports").innerHTML = "<p>Failed to load reports.</p>"
+    })
+}
+
+function resolveReport(reportId, status) {
+    fetch(API + "/api/admin/reports/" + reportId, {
+        method: "PUT",
+        headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (typeof toast === "function") toast(data.message, data.success ? "success" : "error")
+        else alert(data.message)
+        if (data.success) loadReports()
+    })
+    .catch(() => alert("Failed to update report"))
+}
+
+
+/* =========================
+   HOSTEL MANAGEMENT
+========================= */
+
+function loadHostelsAdmin() {
+    fetch(API + "/api/admin/hostels", {
+        headers: authHeaders()
+    })
+    .then(r => r.json())
+    .then(data => {
+        const box = document.getElementById("hostels-list")
+        if (!box) return
+        if (!Array.isArray(data)) {
+            box.innerHTML = "<p>Unable to load hostels.</p>"
+            return
+        }
+
+        box.innerHTML = data.map(h => {
+            const active = h.is_active === 1
+            return `
+                <div class="card" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; padding:10px 15px;">
+                    <div>
+                        <strong>📍 ${escapeHtml(h.name)}</strong> (Code: <code>${escapeHtml(h.code)}</code>)<br>
+                        Status: <strong style="color:${active ? 'var(--green)' : 'var(--red)'}">${active ? 'ACTIVE ✅' : 'INACTIVE 🚫'}</strong>
+                    </div>
+                    <div>
+                        ${
+                            active
+                            ? `<button class="cart-btn" style="background:#ff4b2b; font-size:0.78rem; padding:4px 10px;" onclick="toggleHostelStatus(${h.id}, 0)">Disable</button>`
+                            : `<button class="cart-btn" style="background:var(--green); font-size:0.78rem; padding:4px 10px;" onclick="toggleHostelStatus(${h.id}, 1)">Enable</button>`
+                        }
+                    </div>
+                </div>
+            `
+        }).join("")
+    })
+    .catch(() => {
+        if (document.getElementById("hostels-list")) document.getElementById("hostels-list").innerHTML = "<p>Failed to load hostels.</p>"
+    })
+}
+
+function addHostel() {
+    const nameEl = document.getElementById("new-hostel-name")
+    const codeEl = document.getElementById("new-hostel-code")
+    const name = nameEl ? nameEl.value.trim() : ""
+    const code = codeEl ? codeEl.value.trim() : ""
+
+    if (!name || !code) {
+        alert("Please enter both Hostel Name and Code")
+        return
+    }
+
+    fetch(API + "/api/admin/hostels", {
+        method: "POST",
+        headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, code })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            nameEl.value = ""
+            codeEl.value = ""
+            loadHostelsAdmin()
+        }
+        if (typeof toast === "function") toast(data.message, data.success ? "success" : "error")
+        else alert(data.message)
+    })
+    .catch(() => alert("Failed to add hostel"))
+}
+
+function toggleHostelStatus(id, isActive) {
+    fetch(API + "/api/admin/hostels/" + id, {
+        method: "PUT",
+        headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ is_active: isActive })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) loadHostelsAdmin()
+        if (typeof toast === "function") toast(data.message, data.success ? "success" : "error")
+        else alert(data.message)
+    })
+    .catch(() => alert("Failed to update hostel status"))
+}
+
+
+/* =========================
    HELPERS
 ========================= */
 
@@ -301,4 +465,6 @@ function escapeHtml(value) {
 loadUsers()
 loadProducts()
 loadOrders()
+loadReports()
+loadHostelsAdmin()
 

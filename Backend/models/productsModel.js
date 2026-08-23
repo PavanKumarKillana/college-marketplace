@@ -1,11 +1,13 @@
 const db=require("../config/db")
 
-function getAllProducts(search,category,callback){
+function getAllProducts(search,category,hostelId,callback){
     let query=`
         SELECT products.*, sellers.store_name, sellers.room_number AS seller_room,
+               h.name AS hostel_name, h.code AS hostel_code, h.id AS hostel_id,
         (SELECT AVG(rating) FROM product_reviews WHERE product_id = products.id) AS avg_rating
         FROM products
         LEFT JOIN sellers ON products.seller_id = sellers.id
+        LEFT JOIN hostels h ON sellers.hostel_id = h.id OR (SELECT u.hostel_id FROM users u WHERE u.id = sellers.user_id) = h.id
         WHERE (products.is_active = 1 OR products.is_active IS NULL)
     `
     const params=[]
@@ -16,6 +18,10 @@ function getAllProducts(search,category,callback){
     if(category){
         query += " AND products.category = ?"
         params.push(category)
+    }
+    if(hostelId){
+        query += " AND (h.id = ? OR sellers.hostel_id = ?)"
+        params.push(hostelId, hostelId)
     }
     db.query(query,params,(err,result)=>{
         if(err){

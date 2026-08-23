@@ -112,5 +112,41 @@ CREATE TABLE IF NOT EXISTS seller_strikes (
     FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Hostels table
+CREATE TABLE IF NOT EXISTS hostels (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(20) NOT NULL,
+    is_active TINYINT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE users ADD COLUMN hostel_id INT NULL;
+ALTER TABLE sellers ADD COLUMN hostel_id INT NULL;
+
+-- Reports table
+CREATE TABLE IF NOT EXISTS reports (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reporter_id INT NOT NULL,
+    product_id INT NULL,
+    seller_id INT NULL,
+    reason VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Order messages table (Buyer ↔ Seller Chat)
+CREATE TABLE IF NOT EXISTS order_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Older demo records that used the old button have no proof. Make them pending again.
 UPDATE orders SET payment_status='pending' WHERE payment_status='buyer_confirmed';

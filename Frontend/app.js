@@ -64,6 +64,7 @@ function productCard(p) {
         ? `<img class="product-img" src="${mediaUrl(p.image_url)}" alt="${p.name}">`
         : `<span class="product-img-placeholder">🍟</span>`
     const shop    = p.store_name || "Unknown Shop"
+    const hostel  = p.hostel_name ? `📍 ${p.hostel_name}` : "📍 Campus Hostel"
     const inStock = Number(p.stock) > 0
     const delBadge = p.delivery_available
         ? `<span class="badge badge-blue">🛵 Delivery</span>`
@@ -80,23 +81,22 @@ function productCard(p) {
             <h2>${p.name}</h2>
             <p class="price">₹${p.price}</p>
             <div class="rating-row">${starRating(p.avg_rating)}</div>
-            <p class="product-meta">🏪 ${shop}${p.seller_room ? " · Room " + p.seller_room : ""}</p>
+            <p class="product-meta">🏪 ${shop} | <strong style="color:var(--indigo);">${hostel}</strong></p>
             ${deliveryChargeHtml}
             <div class="badge-row">${stockBadge} ${delBadge}</div>
-            <div class="product-actions" style="margin-top:10px;">
-                <button class="btn btn-primary" onclick="addtoCart(${p.id})" ${inStock ? "" : "disabled"}>
+            <div class="product-actions" style="margin-top:10px; display:flex; gap:6px;">
+                <button class="btn btn-primary" style="flex:1;" onclick="addtoCart(${p.id})" ${inStock ? "" : "disabled"}>
                     🛒 Add
                 </button>
-                <a class="btn btn-secondary" href="product.html?id=${p.id}"
-                   style="display:flex; align-items:center; justify-content:center;">
-                    Details
-                </a>
+                <button class="btn btn-secondary" style="padding:6px 10px;" onclick="reportProduct(${p.id}, '${escapeHtml(p.name)}', ${p.seller_id})" title="Report item">
+                    🚩
+                </button>
             </div>
         </div>
     </div>`
 }
 
-/* ── Categories ────────────────────────────── */
+/* ── Categories & Hostels ─────────────────── */
 function loadCategories() {
     fetch(API + "/api/products/categories/list")
         .then(r => r.json())
@@ -105,6 +105,17 @@ function loadCategories() {
             if (!Array.isArray(data)) return
             data.forEach(row => {
                 box.innerHTML += `<option value="${row.category}">${row.category}</option>`
+            })
+        })
+        .catch(() => {})
+
+    fetch(API + "/api/hostels")
+        .then(r => r.json())
+        .then(hostels => {
+            const hBox = document.getElementById("hostel-box")
+            if (!hBox || !Array.isArray(hostels)) return
+            hostels.forEach(h => {
+                hBox.innerHTML += `<option value="${h.id}">📍 ${h.name} (${h.code})</option>`
             })
         })
         .catch(() => {})
@@ -117,8 +128,10 @@ function loadProducts() {
 
     const search   = document.getElementById("search-box").value
     const category = document.getElementById("category-box").value
+    const hostel   = document.getElementById("hostel-box") ? document.getElementById("hostel-box").value : ""
     let url = API + "/api/products?search=" + encodeURIComponent(search)
     if (category) url += "&category=" + encodeURIComponent(category)
+    if (hostel) url += "&hostel=" + encodeURIComponent(hostel)
 
     fetch(url)
         .then(r => r.json())
@@ -143,9 +156,26 @@ function loadProducts() {
         .catch(() => {
             container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
                 <span class="empty-icon">📡</span>
-                <p>Backend server is offline. Start it with <code>npm run dev</code></p>
+                <p>Backend server is offline.</p>
             </div>`
         })
+}
+
+function reportProduct(productId, title, sellerId) {
+    const reason = prompt(`Report listing "${title}":\nSelect/Type reason (e.g., Unauthorized item, Unsafe food, Misleading listing):`)
+    if (!reason || !reason.trim()) return
+
+    fetch(API + "/api/reports", {
+        method: "POST",
+        headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ product_id: productId, seller_id: sellerId, reason: reason.trim() })
+    })
+    .then(r => r.json())
+    .then(data => toast(data.message, data.success ? "success" : "error"))
+    .catch(() => toast("Failed to submit report", "error"))
 }
 
 /* ── Add to cart ───────────────────────────── */

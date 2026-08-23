@@ -28,6 +28,7 @@ async function registerUser (req,res){
     const password=req.body.password
     const name=req.body.name || null
     const roomNumber=req.body.room_number || null
+    const hostelId=req.body.hostel_id || null
     if(!email || !password){
         return res.json({
             success:false,
@@ -35,7 +36,7 @@ async function registerUser (req,res){
         })
     }
     const hashedPassword=await bcrypt.hash(password,10)
-    userModel.createUser(email,hashedPassword,name,"buyer",roomNumber,(err,result)=>{
+    userModel.createUser(email,hashedPassword,name,"buyer",roomNumber,hostelId,(err,result)=>{
         if(err){
             return res.json({
                 success:false,

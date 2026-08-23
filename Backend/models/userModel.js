@@ -1,8 +1,8 @@
 const db=require("../config/db")
-function createUser(email,hashedPassword,name,role,roomNumber,callback){
+function createUser(email,hashedPassword,name,role,roomNumber,hostelId,callback){
     db.query(
-        "INSERT INTO users(email,password,name,role,room_number)VALUES(?,?,?,?,?)",
-        [email,hashedPassword,name,role,roomNumber],
+        "INSERT INTO users(email,password,name,role,room_number,hostel_id)VALUES(?,?,?,?,?,?)",
+        [email,hashedPassword,name,role,roomNumber,hostelId || null],
         (err,result)=>{
             if(err){
                 callback(err,null)

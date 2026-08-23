@@ -58,18 +58,37 @@ function loginUser() {
     .catch(() => toast("Server offline — is the backend running?", "error"))
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+    loadRegistrationHostels()
+})
+
+function loadRegistrationHostels() {
+    const sel = document.getElementById("reg-hostel")
+    if (!sel) return
+    fetch(API + "/api/hostels")
+    .then(r => r.json())
+    .then(hostels => {
+        if (Array.isArray(hostels) && hostels.length > 0) {
+            sel.innerHTML = `<option value="">-- Select Your Hostel / Building --</option>` + 
+                hostels.map(h => `<option value="${h.id}">📍 ${h.name} (${h.code})</option>`).join("")
+        }
+    })
+    .catch(() => {})
+}
+
 function registerUser() {
     const name        = document.getElementById("reg-name").value.trim()
     const email       = document.getElementById("reg-email").value.trim()
     const password    = document.getElementById("reg-password").value
     const room_number = document.getElementById("reg-room").value.trim()
+    const hostel_id   = document.getElementById("reg-hostel") ? document.getElementById("reg-hostel").value : ""
 
     if (!name || !email || !password) { toast("Name, email and password are required", "error"); return }
 
     fetch(API + "/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, room_number })
+        body: JSON.stringify({ name, email, password, room_number, hostel_id })
     })
     .then(r => r.json())
     .then(data => {

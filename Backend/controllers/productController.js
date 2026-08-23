@@ -7,12 +7,19 @@ function available(value){
 function getProducts(req,res){
     const search=req.query.search || ""
     const category=req.query.category || ""
-    productModel.getAllProducts(search,category,(err,result)=>{
+    const hostelId=req.query.hostel || ""
+    productModel.getAllProducts(search,category,hostelId,(err,result)=>{
         if(err){
-            res.json({success:false,message:"cannot get products. Run schema.sql"})
+            res.json({success:false,message:"cannot get products"})
         }
         else{
-            res.json(result)
+            // Room privacy: Mask exact seller room number on public listings
+            const sanitized = (result || []).map(p => {
+                const item = { ...p }
+                delete item.seller_room
+                return item
+            })
+            res.json(sanitized)
         }
     })
 }

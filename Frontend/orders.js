@@ -383,10 +383,97 @@ fetch(API + "/api/orders", {
 
                 ${payForm}
 
+                <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+                    <button class="cart-btn" style="background:var(--indigo); font-size:0.8rem; padding:6px 12px;" onclick="openChatModal(${order.id}, '${escapeHtml(order.store_name || 'Seller')}')">
+                        💬 Chat with Seller
+                    </button>
+                </div>
+
             </div>
         `
     })
 })
+
+/* =========================
+   ORDER CHAT HANDLERS
+========================= */
+
+let currentChatOrderId = null
+
+function openChatModal(orderId, storeName) {
+    currentChatOrderId = orderId
+    document.getElementById("chat-modal-title").textContent = `💬 Chat with ${storeName} (Order #${orderId})`
+    document.getElementById("chat-modal").style.display = "flex"
+    loadChatMessages()
+}
+
+function closeChatModal() {
+    document.getElementById("chat-modal").style.display = "none"
+    currentChatOrderId = null
+}
+
+function loadChatMessages() {
+    if (!currentChatOrderId) return
+    const box = document.getElementById("chat-messages-box")
+    box.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">Loading messages…</p>`
+
+    fetch(API + "/api/orders/" + currentChatOrderId + "/messages", {
+        headers: authHeaders()
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!Array.isArray(data)) {
+            box.innerHTML = `<p style="color:var(--red); font-size:0.8rem;">Failed to load chat.</p>`
+            return
+        }
+        if (data.length === 0) {
+            box.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">No messages yet. Send a message below to coordinate delivery!</p>`
+            return
+        }
+        const currentUserId = Number(localStorage.getItem("user_id") || 0)
+        box.innerHTML = data.map(m => {
+            const isMe = m.sender_id === currentUserId
+            return `
+                <div style="margin-bottom:8px; text-align:${isMe ? 'right' : 'left'};">
+                    <div style="display:inline-block; max-width:80%; padding:8px 12px; border-radius:10px; font-size:0.82rem; background:${isMe ? 'var(--indigo)' : 'var(--surface)'}; color:${isMe ? '#fff' : 'var(--text)'}; text-align:left;">
+                        <strong>${escapeHtml(m.sender_name || 'User')}</strong> (${escapeHtml(m.sender_role || 'user')}):<br>
+                        ${escapeHtml(m.message)}
+                    </div>
+                </div>
+            `
+        }).join("")
+        box.scrollTop = box.scrollHeight
+    })
+    .catch(() => {
+        box.innerHTML = `<p style="color:var(--red); font-size:0.8rem;">Chat offline.</p>`
+    })
+}
+
+function sendChatMessage() {
+    if (!currentChatOrderId) return
+    const input = document.getElementById("chat-input")
+    const msg = input.value.trim()
+    if (!msg) return
+
+    fetch(API + "/api/orders/" + currentChatOrderId + "/messages", {
+        method: "POST",
+        headers: {
+            ...authHeaders(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: msg })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = ""
+            loadChatMessages()
+        } else {
+            toast(data.message, "error")
+        }
+    })
+    .catch(() => toast("Failed to send message", "error"))
+}
 
 
 /* =========================
