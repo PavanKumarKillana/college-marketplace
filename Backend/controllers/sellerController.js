@@ -7,11 +7,18 @@ function getStore(req,res){
         if(err || sellers.length===0){
             return res.json({success:false,message:"Seller not found"})
         }
+        const seller = { ...sellers[0] }
+        delete seller.room_number
         productModel.getProductsBySeller(req.params.id,(pErr,products)=>{
+            const sanitizedProducts = (products || []).map(p => {
+                const item = { ...p }
+                delete item.seller_room
+                return item
+            })
             reviewModel.getSellerReviews(req.params.id,(rErr,reviews)=>{
                 res.json({
-                    seller:sellers[0],
-                    products:products || [],
+                    seller:seller,
+                    products:sanitizedProducts,
                     reviews:reviews || []
                 })
             })

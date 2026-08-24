@@ -17,7 +17,8 @@
         </div>
     </a>
     <a href="index.html"  class="nav-link">🏠 Shop</a>
-    <a href="orders.html" class="nav-link">📦 Orders</a>
+    <a href="orders.html" class="nav-link">📦 Buyer Orders</a>
+    <a href="seller.html" class="nav-link" style="color:var(--brand);">🏪 Seller Dashboard</a>
     <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
 </nav>
 
@@ -117,6 +118,53 @@
     <p class="section-heading">Incoming Orders</p>
     <div id="seller-orders" style="max-width:800px;"></div>
 
+</div>
+
+<!-- ORDER DETAIL MODAL -->
+<div id="order-detail-modal" class="modal-overlay">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3 id="detail-modal-title">📋 Order Details</h3>
+            <button onclick="closeOrderDetailModal()" class="modal-close-btn">✖</button>
+        </div>
+        <div id="detail-modal-body" class="modal-body"></div>
+    </div>
+</div>
+
+<!-- ORDER CHAT & NEGOTIATION MODAL -->
+<div id="chat-modal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width:560px;">
+        <div class="modal-header">
+            <h3 id="chat-modal-title">💬 Order Chat</h3>
+            <button onclick="closeChatModal()" class="modal-close-btn">✖</button>
+        </div>
+        <div class="modal-body" style="display:flex; flex-direction:column; padding:12px;">
+            <div id="chat-context-box" class="chat-context-bar"></div>
+
+            <!-- Seller Create Offer Bar -->
+            <div id="seller-offer-bar" style="display:none; background:var(--bg-3); border:1px dashed var(--brand); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="color:var(--brand); font-size:0.82rem;">🏷️ Create Price Offer for Buyer</strong>
+                    <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="toggleOfferInputs()">+ Custom Price</button>
+                </div>
+                <div id="offer-input-fields" style="display:none; margin-top:8px;">
+                    <select id="offer-item-select" class="input-field" style="margin-bottom:6px; font-size:0.82rem; padding:6px;"></select>
+                    <div style="display:flex; gap:8px; margin-bottom:6px;">
+                        <input type="number" id="offer-price-input" placeholder="Offered unit price ₹" class="input-field" style="margin:0; flex:1;">
+                        <button class="btn btn-primary" style="font-size:0.8rem; padding:6px 12px;" onclick="sendCustomOffer()">Send Offer</button>
+                    </div>
+                    <input type="text" id="offer-note-input" placeholder="Note (e.g. Special student discount)" class="input-field" style="margin:0; font-size:0.8rem;">
+                </div>
+            </div>
+
+            <div id="chat-messages-box" class="chat-messages-box"></div>
+
+            <div id="chat-composer" style="display:flex; gap:8px; margin-top:auto;">
+                <input type="text" id="chat-input" placeholder="Type your message…" class="input-field" style="margin:0;" onkeydown="if(event.key==='Enter') sendChatMessage()">
+                <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="api.js"></script>

@@ -28,6 +28,7 @@ fetch(API + "/api/users/me", { headers: authHeaders() })
     .then(r => r.json())
     .then(me => {
         const isSeller = !!me.is_seller
+        if (me.id) localStorage.setItem("user_id", me.id)
         localStorage.setItem("is_seller", isSeller ? "1" : "0")
         if (me.role) localStorage.setItem("role", me.role)
         setupNav(isSeller, me.role || "buyer")
@@ -118,6 +119,8 @@ function becomeSeller() {
 }
 
 /* ── Product card ──────────────────────────── */
+let globalProducts = []
+
 function productCard(p) {
     const imgHtml = p.image_url
         ? `<img class="product-img" src="${mediaUrl(p.image_url)}" alt="${p.name}">`
@@ -135,17 +138,20 @@ function productCard(p) {
         ? `<p class="product-meta">+ ₹${p.delivery_charge} delivery</p>` : ""
 
     return `<div class="product-card">
-        <div class="product-image-frame">${imgHtml}</div>
+        <div class="product-image-frame" onclick="openProductDetailModal(${p.id})">${imgHtml}</div>
         <div class="product-body">
-            <h2>${p.name}</h2>
+            <h2 onclick="openProductDetailModal(${p.id})">${escapeHtml(p.name)}</h2>
             <p class="price">₹${p.price}</p>
             <div class="rating-row">${starRating(p.avg_rating)}</div>
-            <p class="product-meta">🏪 ${shop} | <strong style="color:var(--indigo);">${hostel}</strong></p>
+            <p class="product-meta">🏪 ${escapeHtml(shop)} | <strong style="color:var(--brand);">${escapeHtml(hostel)}</strong></p>
             ${deliveryChargeHtml}
             <div class="badge-row">${stockBadge} ${delBadge}</div>
             <div class="product-actions" style="margin-top:10px; display:flex; gap:6px;">
                 <button class="btn btn-primary" style="flex:1;" onclick="addtoCart(${p.id})" ${inStock ? "" : "disabled"}>
                     🛒 Add
+                </button>
+                <button class="btn btn-secondary" style="padding:6px 10px;" onclick="openProductDetailModal(${p.id})" title="View Details">
+                    👁️
                 </button>
                 <button class="btn btn-secondary" style="padding:6px 10px;" onclick="reportProduct(${p.id}, '${escapeHtml(p.name)}', ${p.seller_id})" title="Report item">
                     🚩
@@ -153,6 +159,60 @@ function productCard(p) {
             </div>
         </div>
     </div>`
+}
+
+function openProductDetailModal(productId) {
+    const p = globalProducts.find(x => x.id === productId)
+    if (!p) return
+
+    const modal = document.getElementById("product-detail-modal")
+    const title = document.getElementById("product-detail-title")
+    const body = document.getElementById("product-detail-body")
+
+    title.textContent = p.name
+
+    const imgHtml = p.image_url
+        ? `<img src="${mediaUrl(p.image_url)}" alt="${p.name}" style="max-height:220px; object-fit:contain; border-radius:var(--radius-md);">`
+        : `<span style="font-size:4rem; opacity:0.3;">🍟</span>`
+
+    const inStock = Number(p.stock) > 0
+
+    body.innerHTML = `
+        <div style="display:flex; justify-content:center; background:var(--bg-3); padding:16px; border-radius:var(--radius-md); margin-bottom:14px;">
+            ${imgHtml}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h2 style="font-size:1.2rem; font-weight:800; margin:0;">${escapeHtml(p.name)}</h2>
+            <span style="font-size:1.3rem; font-weight:800; color:var(--brand);">₹${p.price}</span>
+        </div>
+        <div class="rating-row" style="margin-bottom:8px;">${starRating(p.avg_rating)}</div>
+        <p style="font-size:0.85rem; color:var(--text-2); margin-bottom:8px;">
+            🏪 Store: <strong>${escapeHtml(p.store_name || "Campus Seller")}</strong><br>
+            📍 Hostel Building: <strong style="color:var(--brand);">${escapeHtml(p.hostel_name || "Campus Hostel")}</strong>
+        </p>
+        <p style="font-size:0.85rem; color:var(--text-1); margin-bottom:12px; background:var(--bg-3); padding:10px; border-radius:var(--radius-sm);">
+            ${escapeHtml(p.description || "No description provided.")}
+        </p>
+        <div class="badge-row" style="margin-bottom:16px;">
+            <span class="badge ${inStock ? 'badge-green' : 'badge-red'}">${inStock ? `In Stock: ${p.stock}` : 'Sold Out'}</span>
+            <span class="badge ${p.delivery_available ? 'badge-blue' : 'badge-gray'}">${p.delivery_available ? '🛵 Room Delivery Available' : '🏃 Pickup Only'}</span>
+            ${p.delivery_available && Number(p.delivery_charge) > 0 ? `<span class="badge badge-orange">+ ₹${p.delivery_charge} delivery</span>` : ''}
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary btn-full" onclick="addtoCart(${p.id}); closeProductDetailModal();" ${inStock ? "" : "disabled"}>
+                🛒 Add to Cart (₹${p.price})
+            </button>
+            <button class="btn btn-secondary" onclick="reportProduct(${p.id}, '${escapeHtml(p.name)}', ${p.seller_id})" title="Report item">
+                🚩 Report
+            </button>
+        </div>
+    `
+
+    modal.style.display = "flex"
+}
+
+function closeProductDetailModal() {
+    document.getElementById("product-detail-modal").style.display = "none"
 }
 
 /* ── Categories & Hostels ─────────────────── */
@@ -210,6 +270,7 @@ function loadProducts() {
                 </div>`
                 return
             }
+            globalProducts = data
             data.forEach(p => { container.innerHTML += productCard(p) })
         })
         .catch(() => {

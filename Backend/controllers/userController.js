@@ -15,6 +15,7 @@ function sendLoginResponse(res,user){
         res.json({
             success:true,
             token:token,
+            user_id:user.id,
             role:role,
             is_seller:isSeller,
             name:user.name || "",

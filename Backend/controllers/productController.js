@@ -39,10 +39,14 @@ function getSingleProduct(req,res){
     const id=req.params.id
     productModel.getProductById(id,(err,result)=>{
         if(err){
-            res.json(err)
+            res.json({success:false,message:"Product not found"})
         }
-        else{
-            res.json(result)
+        else if (Array.isArray(result) && result.length > 0) {
+            const item = { ...result[0] }
+            delete item.seller_room
+            res.json(item)
+        } else {
+            res.json({success:false,message:"Product not found"})
         }
     })
 }

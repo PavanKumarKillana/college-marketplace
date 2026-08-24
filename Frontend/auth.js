@@ -47,6 +47,7 @@ function loginUser() {
     .then(data => {
         if (data.success) {
             localStorage.setItem("token", data.token)
+            if (data.user_id) localStorage.setItem("user_id", data.user_id)
             localStorage.setItem("role", data.role || "buyer")
             localStorage.setItem("is_seller", data.is_seller ? "1" : "0")
             if (data.room_number) localStorage.setItem("room_number", data.room_number)

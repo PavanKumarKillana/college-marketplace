@@ -93,6 +93,29 @@ db.connect((err)=>{
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`, (err) => { if (err) console.error("order_messages:", err.message) })
 
+    db.query(`CREATE TABLE IF NOT EXISTS order_offers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        order_item_id INT NOT NULL,
+        seller_id INT NOT NULL,
+        buyer_id INT NOT NULL,
+        offered_price DECIMAL(10,2) NOT NULL,
+        original_price DECIMAL(10,2) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        message TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )`, (err) => {
+        if (err) console.error("order_offers:", err.message)
+        db.query("SHOW COLUMNS FROM order_offers LIKE 'order_item_id'", (cErr, cRes) => {
+            if (!cErr && (!cRes || cRes.length === 0)) {
+                db.query("ALTER TABLE order_offers ADD COLUMN order_item_id INT NOT NULL AFTER order_id", (aErr) => {
+                    if (!aErr) console.log("Added order_item_id to order_offers.")
+                })
+            }
+        })
+    })
+
     // ── Hostels table — Admin-managed data ───────────────────────────────────
     //
     // RULE: The server NEVER automatically deletes any hostel row on startup.
