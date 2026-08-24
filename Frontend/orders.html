@@ -16,48 +16,65 @@
             <span class="brand-sub">Amrita Campus Marketplace</span>
         </div>
     </a>
-    <a href="index.html" class="nav-link">🏠 Home</a>
-    <a href="orders.html" class="nav-link" style="color:var(--brand);">📦 My Orders</a>
-    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="orders.html" class="nav-link nav-link-active">My Orders</a>
+        <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+    </div>
 </nav>
 
 <div id="toast-container"></div>
 
 <div class="page">
-    <p class="section-heading">📦 My Orders</p>
+    <div class="section-header" style="max-width:760px; margin:0 auto 16px auto; display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="font-size:1.3rem; margin:0; color:var(--text-1);">My Orders</h2>
+        <a href="index.html" class="btn btn-secondary" style="font-size:0.8rem; padding:6px 12px;">+ New Purchase</a>
+    </div>
     <div id="orders" style="max-width:760px; margin:0 auto;"></div>
 </div>
 
 <!-- ORDER DETAIL MODAL -->
 <div id="order-detail-modal" class="modal-overlay">
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="max-width:600px;">
         <div class="modal-header">
-            <h3 id="detail-modal-title">📋 Order Details</h3>
-            <button onclick="closeOrderDetailModal()" class="modal-close-btn">✖</button>
+            <h3 id="detail-modal-title">Order Details</h3>
+            <button onclick="closeOrderDetailModal()" class="modal-close-btn" aria-label="Close modal">×</button>
         </div>
         <div id="detail-modal-body" class="modal-body"></div>
     </div>
 </div>
 
+<!-- PAYMENT MODAL -->
+<div id="payment-modal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width:480px;">
+        <div class="modal-header">
+            <h3 id="payment-modal-title">Submit Order Payment</h3>
+            <button onclick="closePaymentModal()" class="modal-close-btn" aria-label="Close modal">×</button>
+        </div>
+        <div id="payment-modal-body" class="modal-body"></div>
+    </div>
+</div>
+
 <!-- ORDER CHAT & NEGOTIATION MODAL -->
 <div id="chat-modal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width:560px;">
+    <div class="modal-dialog chat-dialog" style="max-width:560px;">
         <div class="modal-header">
-            <h3 id="chat-modal-title">💬 Order Chat</h3>
-            <button onclick="closeChatModal()" class="modal-close-btn">✖</button>
+            <h3 id="chat-modal-title">Order Conversation</h3>
+            <button onclick="closeChatModal()" class="modal-close-btn" aria-label="Close modal">×</button>
         </div>
-        <div class="modal-body" style="display:flex; flex-direction:column; padding:12px;">
+        <div class="modal-body chat-modal-body" style="display:flex; flex-direction:column; padding:12px;">
             <div id="chat-context-box" class="chat-context-bar"></div>
 
-            <!-- Seller Create Offer Bar (Hidden by default, shown if current user is seller) -->
+            <!-- Seller Create Offer Bar -->
             <div id="seller-offer-bar" style="display:none; background:var(--bg-3); border:1px dashed var(--brand); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong style="color:var(--brand); font-size:0.82rem;">🏷️ Seller Negotiation Offer</strong>
-                    <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="toggleOfferInputs()">+ Custom Price</button>
+                    <strong style="color:var(--brand); font-size:0.82rem;">Create Custom Price Offer</strong>
+                    <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="toggleOfferInputs()">Custom Price</button>
                 </div>
                 <div id="offer-input-fields" style="display:none; margin-top:8px;">
+                    <select id="offer-item-select" class="input-field" style="margin-bottom:6px; font-size:0.82rem; padding:6px;"></select>
                     <div style="display:flex; gap:8px; margin-bottom:6px;">
-                        <input type="number" id="offer-price-input" placeholder="Offered price ₹" class="input-field" style="margin:0; flex:1;">
+                        <input type="number" id="offer-price-input" placeholder="Offered unit price ₹" class="input-field" style="margin:0; flex:1;">
                         <button class="btn btn-primary" style="font-size:0.8rem; padding:6px 12px;" onclick="sendCustomOffer()">Send Offer</button>
                     </div>
                     <input type="text" id="offer-note-input" placeholder="Note (e.g. Bulk discount agreed)" class="input-field" style="margin:0; font-size:0.8rem;">

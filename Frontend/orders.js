@@ -1,8 +1,9 @@
-/* orders.js — Compact Marketplace Orders & Chat */
+/* orders.js — Compact Marketplace Orders, Payment & Negotiation */
 
 requireLogin()
 
 let globalOrders = []
+let currentChatOrderId = null
 
 function loadBuyerOrders() {
     const box = document.getElementById("orders")
@@ -16,8 +17,8 @@ function loadBuyerOrders() {
         if (!Array.isArray(data) || data.length === 0) {
             box.innerHTML = `
                 <div class="empty-state">
-                    <span class="empty-icon">📭</span>
-                    <p>No orders yet. <a href="index.html">Go shop something!</a></p>
+                    <p style="font-size:1rem; font-weight:600; color:var(--text-2); margin-bottom:8px;">No orders found</p>
+                    <p><a href="index.html" class="btn btn-primary" style="font-size:0.82rem;">Browse Marketplace</a></p>
                 </div>
             `
             return
@@ -27,7 +28,7 @@ function loadBuyerOrders() {
         box.innerHTML = data.map(order => renderCompactOrderCard(order)).join("")
     })
     .catch(() => {
-        box.innerHTML = `<div class="empty-state"><span class="empty-icon">📡</span><p>Could not load orders.</p></div>`
+        box.innerHTML = `<div class="empty-state"><p style="color:var(--red);">Could not load orders. Please refresh the page.</p></div>`
     })
 }
 
@@ -49,36 +50,45 @@ function renderCompactOrderCard(order) {
 
     const stColor = statusColors[order.status] || "badge-gray"
     const pyColor = payColors[order.payment_status] || "badge-gray"
-    const itemSummary = (order.items || []).map(i => `${i.name} × ${i.quantity}`).join(", ") || "Order items"
+    const items = order.items || []
+    const itemSummary = items.map(i => `${i.name} × ${i.quantity}`).join(", ") || "Order items"
+    const itemCountText = items.length === 1 ? "1 item" : `${items.length} items`
+
+    const isPayable = order.payment_status === "pending" || order.payment_status === "rejected"
 
     return `
         <div class="compact-order-card">
             <div class="compact-order-header">
                 <div>
-                    <strong style="font-size:0.95rem; color:var(--text-1);">🏪 ${escapeHtml(order.store_name || "Campus Seller")}</strong>
-                    <span style="font-size:0.78rem; color:var(--text-2); margin-left:8px;">Order #${order.id}</span>
+                    <strong style="font-size:0.95rem; color:var(--text-1);">${escapeHtml(order.store_name || "Campus Seller")}</strong>
+                    <span style="font-size:0.78rem; color:var(--text-3); margin-left:8px;">Order #${order.id}</span>
                 </div>
                 <span class="order-total">₹${order.grand_total}</span>
             </div>
 
-            <p style="font-size:0.82rem; color:var(--text-2); margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                ${escapeHtml(itemSummary)}
+            <p style="font-size:0.82rem; color:var(--text-2); margin:4px 0 8px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                <strong>${itemCountText}</strong> · ${escapeHtml(itemSummary)}
             </p>
 
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                 <div class="badge-row">
-                    <span class="badge ${stColor}">📦 ${order.status}</span>
-                    <span class="badge ${pyColor}">💳 Pay: ${order.payment_status}</span>
-                    <span class="badge badge-gray">${order.fulfillment_type === 'delivery' ? '🛵 Delivery' : '🏃 Pickup'}</span>
+                    <span class="badge ${stColor}">${order.status}</span>
+                    <span class="badge ${pyColor}">Pay: ${order.payment_status}</span>
+                    <span class="badge badge-gray">${order.fulfillment_type === 'delivery' ? 'Delivery' : 'Pickup'}</span>
                 </div>
 
                 <div style="display:flex; gap:6px;">
                     <button class="btn btn-secondary" style="font-size:0.78rem; padding:5px 10px;" onclick="openOrderDetailModal(${order.id})">
-                        📋 Details
+                        View Order
                     </button>
-                    <button class="btn btn-primary" style="font-size:0.78rem; padding:5px 10px;" onclick="openChatModal(${order.id}, '${escapeHtml(order.store_name || 'Seller')}')">
-                        💬 Chat &amp; Negotiate
+                    <button class="btn btn-secondary" style="font-size:0.78rem; padding:5px 10px;" onclick="openChatModal(${order.id})">
+                        Chat
                     </button>
+                    ${isPayable ? `
+                        <button class="btn btn-primary" style="font-size:0.78rem; padding:5px 10px;" onclick="openPaymentModal(${order.id})">
+                            Pay Now
+                        </button>
+                    ` : ''}
                 </div>
             </div>
         </div>
@@ -97,80 +107,85 @@ function openOrderDetailModal(orderId) {
     const title = document.getElementById("detail-modal-title")
     const body = document.getElementById("detail-modal-body")
 
-    title.textContent = `📋 Order #${order.id} — ${order.store_name || 'Seller'}`
+    title.textContent = `Order #${order.id} — ${order.store_name || 'Seller'}`
 
     let itemsHtml = (order.items || []).map(item => `
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding:4px 0; border-bottom:1px solid var(--border);">
-            <span>• ${escapeHtml(item.name)} × ${item.quantity}</span>
-            <strong>₹${item.price}</strong>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding:6px 0; border-bottom:1px solid var(--border);">
+            <div>
+                <strong>${escapeHtml(item.name)}</strong>
+                <span style="font-size:0.78rem; color:var(--text-3); margin-left:6px;">× ${item.quantity}</span>
+            </div>
+            <strong>₹${(parseFloat(item.price) * item.quantity).toFixed(2)}</strong>
         </div>
     `).join("")
 
     let locationHtml = ""
     if (order.fulfillment_type === 'delivery') {
-        const buyerLoc = [order.buyer_year, escapeHtml(order.buyer_hostel_name || 'Campus Hostel'), 'Room ' + escapeHtml(order.buyer_room || order.buyer_room_number || '-')].filter(Boolean).join(' • ')
-        locationHtml = `<p style="font-size:0.82rem; color:var(--text-2); margin-top:8px;">
-            🛵 <strong>Deliver to (Your location):</strong> ${buyerLoc}<br>
-            🏃 <strong>Pickup from (Seller):</strong> ${escapeHtml(order.seller_hostel_name || 'Campus Hostel')}
-        </p>`
+        const buyerLoc = [order.buyer_year, escapeHtml(order.buyer_hostel_name || 'Campus Hostel'), 'Room ' + escapeHtml(order.buyer_room || order.buyer_room_number || '-')].filter(Boolean).join(' · ')
+        locationHtml = `
+            <div class="info-card" style="background:var(--bg-3); padding:10px 12px; border-radius:var(--radius-md); margin-top:10px; font-size:0.82rem;">
+                <div style="color:var(--text-2);"><strong>Delivery Location:</strong> ${buyerLoc}</div>
+                <div style="color:var(--text-3); font-size:0.78rem; margin-top:2px;">Seller: ${escapeHtml(order.seller_hostel_name || 'Campus Hostel')}</div>
+            </div>
+        `
     } else {
-        locationHtml = `<p style="font-size:0.82rem; color:var(--text-2); margin-top:8px;">
-            🏃 <strong>Pickup Location:</strong> ${escapeHtml(order.seller_hostel_name || 'Campus Hostel')} • Room ${escapeHtml(order.seller_room || '-')}
-        </p>`
-    }
-
-    let payFormHtml = ""
-    if (order.payment_status === "pending" || order.payment_status === "rejected") {
-        const qrHtml = order.upi_qr_url
-            ? `<div class="qr-box"><img src="${mediaUrl(order.upi_qr_url)}" alt="UPI QR"></div>`
-            : `<p style="color:var(--text-3); font-size:0.8rem;">No QR code provided by seller.</p>`
-
-        payFormHtml = `
-            <div style="background:var(--bg-3); border-radius:var(--radius-md); padding:14px; margin-top:14px;">
-                <p style="font-weight:700; margin-bottom:8px;">💳 Pay to Complete Order</p>
-                <p style="font-size:0.82rem; color:var(--text-2); margin-bottom:6px;">
-                    <strong>Step 1:</strong> Send <strong>₹${order.grand_total}</strong> to UPI: <strong style="color:var(--brand);">${escapeHtml(order.upi_id || "Not set")}</strong>
-                </p>
-                ${qrHtml}
-                <span class="input-label">Step 2: UPI Transaction ID / UTR <span style="color:var(--text-3);">(optional)</span></span>
-                <input id="utr-${order.id}" class="input-field" placeholder="UTR number (optional)">
-
-                <span class="input-label">Payment Screenshot <strong style="color:var(--red);">(required)</strong></span>
-                <input id="ss-${order.id}" class="input-field" type="file" accept="image/png,image/jpeg,image/webp">
-
-                <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="submitPayment(${order.id})">
-                    📤 Submit Payment Proof
-                </button>
-            </div>
-        `
-    } else if (order.payment_status === "submitted") {
-        payFormHtml = `
-            <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:var(--radius-md); padding:12px; margin-top:14px;">
-                <p style="color:#818cf8; font-size:0.85rem; margin:0;">
-                    ⏳ Payment proof submitted ${order.payment_utr ? `(UTR: ${order.payment_utr})` : ""}<br>Waiting for seller verification.
-                </p>
-            </div>
-        `
-    } else if (order.payment_status === "verified") {
-        payFormHtml = `
-            <div style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:var(--radius-md); padding:12px; margin-top:14px;">
-                <p style="color:var(--green); font-size:0.85rem; margin:0;">✅ Payment verified by seller!</p>
+        locationHtml = `
+            <div class="info-card" style="background:var(--bg-3); padding:10px 12px; border-radius:var(--radius-md); margin-top:10px; font-size:0.82rem;">
+                <div style="color:var(--text-2);"><strong>Pickup Location:</strong> ${escapeHtml(order.seller_hostel_name || 'Campus Hostel')} · Room ${escapeHtml(order.seller_room || '-')}</div>
             </div>
         `
     }
+
+    const isPayable = order.payment_status === "pending" || order.payment_status === "rejected"
 
     body.innerHTML = `
-        <div style="margin-bottom:12px;">
-            <p style="font-weight:600; margin-bottom:6px;">Items Ordered:</p>
-            ${itemsHtml}
-            <div style="display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-2); margin-top:8px;">
-                <span>Items: ₹${order.items_total}</span>
-                <span>Delivery: ₹${order.delivery_charge}</span>
-                <strong style="color:var(--text-1);">Total: ₹${order.grand_total}</strong>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Order Meta -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-2); padding:10px 12px; border-radius:var(--radius-md);">
+                <div>
+                    <span class="badge badge-blue" style="margin-right:6px;">${order.status}</span>
+                    <span class="badge ${isPayable ? 'badge-orange' : 'badge-green'}">Pay: ${order.payment_status}</span>
+                </div>
+                <span style="font-size:0.8rem; color:var(--text-3);">${order.fulfillment_type === 'delivery' ? 'Room Delivery' : 'Pickup Order'}</span>
+            </div>
+
+            <!-- Items Section -->
+            <div>
+                <h4 style="font-size:0.85rem; color:var(--text-2); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Purchased Items</h4>
+                ${itemsHtml}
+            </div>
+
+            <!-- Totals Breakdown -->
+            <div style="background:var(--bg-3); padding:12px; border-radius:var(--radius-md); font-size:0.85rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:var(--text-2);">
+                    <span>Items Total</span>
+                    <span>₹${order.items_total}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:var(--text-2);">
+                    <span>Delivery Charge</span>
+                    <span>₹${order.delivery_charge}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.95rem; color:var(--text-1); border-top:1px solid var(--border); padding-top:6px;">
+                    <span>Grand Total</span>
+                    <span style="color:var(--brand);">₹${order.grand_total}</span>
+                </div>
+            </div>
+
+            <!-- Fulfillment Location -->
+            ${locationHtml}
+
+            <!-- Actions -->
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <button class="btn btn-secondary" style="flex:1;" onclick="closeOrderDetailModal(); openChatModal(${order.id})">
+                    Open Chat &amp; Negotiation
+                </button>
+                ${isPayable ? `
+                    <button class="btn btn-primary" style="flex:1;" onclick="closeOrderDetailModal(); openPaymentModal(${order.id})">
+                        Pay Now
+                    </button>
+                ` : ''}
             </div>
         </div>
-        ${locationHtml}
-        ${payFormHtml}
     `
 
     modal.style.display = "flex"
@@ -181,15 +196,103 @@ function closeOrderDetailModal() {
 }
 
 /* ================================================
-   ORDER CHAT & NEGOTIATION HANDLERS
+   PAYMENT MODAL (3-Step Interface)
 ================================================ */
 
-let currentChatOrderId = null
-let currentChatIsSeller = false
+function openPaymentModal(orderId) {
+    const order = globalOrders.find(o => o.id === orderId)
+    if (!order) return
 
-function openChatModal(orderId, storeName) {
+    const modal = document.getElementById("payment-modal")
+    const title = document.getElementById("payment-modal-title")
+    const body = document.getElementById("payment-modal-body")
+
+    title.textContent = `Pay Order #${order.id}`
+
+    const qrHtml = order.upi_qr_url
+        ? `<div style="text-align:center; margin:10px 0;"><img src="${mediaUrl(order.upi_qr_url)}" alt="UPI QR Code" style="max-width:160px; height:auto; border-radius:8px; border:1px solid var(--border);"></div>`
+        : `<p style="color:var(--text-3); font-size:0.8rem; margin:6px 0;">No QR code uploaded by seller. Please transfer to UPI ID below.</p>`
+
+    body.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Step 1: Pay Details -->
+            <div style="background:var(--bg-3); border-radius:var(--radius-md); padding:12px;">
+                <span class="badge badge-brand" style="margin-bottom:6px;">Step 1 · Transfer Amount</span>
+                <p style="font-size:0.85rem; margin:6px 0 2px 0;">Send exactly <strong>₹${order.grand_total}</strong> to:</p>
+                <div style="font-size:0.95rem; font-weight:700; color:var(--brand); word-break:break-all;">${escapeHtml(order.upi_id || "Not configured by seller")}</div>
+                ${qrHtml}
+            </div>
+
+            <!-- Step 2: UTR Reference -->
+            <div style="background:var(--bg-3); border-radius:var(--radius-md); padding:12px;">
+                <span class="badge badge-gray" style="margin-bottom:6px;">Step 2 · UTR / Reference ID</span>
+                <input id="utr-${order.id}" class="input-field" placeholder="12-digit UTR / UPI Transaction ID (optional)" style="margin-top:6px; margin-bottom:0;">
+            </div>
+
+            <!-- Step 3: Screenshot Upload -->
+            <div style="background:var(--bg-3); border-radius:var(--radius-md); padding:12px;">
+                <span class="badge badge-gray" style="margin-bottom:6px;">Step 3 · Payment Screenshot</span>
+                <input id="ss-${order.id}" class="input-field" type="file" accept="image/png,image/jpeg,image/webp" style="margin-top:6px; margin-bottom:0;">
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn btn-primary btn-full" style="padding:10px;" onclick="submitPayment(${order.id})">
+                Submit Payment Proof
+            </button>
+        </div>
+    `
+
+    modal.style.display = "flex"
+}
+
+function closePaymentModal() {
+    document.getElementById("payment-modal").style.display = "none"
+}
+
+function submitPayment(orderId) {
+    const utrInput = document.getElementById("utr-" + orderId)
+    const ssInput  = document.getElementById("ss-" + orderId)
+
+    const utr  = utrInput ? utrInput.value.trim() : ""
+    const file = ssInput ? ssInput.files[0] : null
+
+    if (!file) {
+        toast("Please upload a payment screenshot", "error")
+        return
+    }
+
+    const formData = new FormData()
+    formData.append("payment_utr", utr)
+    formData.append("payment_screenshot", file)
+
+    fetch(API + "/api/orders/" + orderId + "/pay", {
+        method: "POST",
+        headers: authUploadHeaders(),
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        toast(data.message, data.success ? "success" : "error")
+        if (data.success) {
+            closePaymentModal()
+            closeOrderDetailModal()
+            loadBuyerOrders()
+        }
+    })
+    .catch(() => {
+        toast("Failed to submit payment proof", "error")
+    })
+}
+
+/* ================================================
+   CHAT & NEGOTIATION MODAL
+================================================ */
+
+function openChatModal(orderId) {
+    const order = globalOrders.find(item => item.id === orderId)
+    const storeName = order ? order.store_name : "Seller"
     currentChatOrderId = orderId
-    document.getElementById("chat-modal-title").textContent = `💬 Order #${orderId} Chat`
+    document.getElementById("chat-modal-title").textContent = `Order #${orderId} Chat (${storeName})`
     document.getElementById("chat-modal").style.display = "flex"
     document.getElementById("offer-input-fields").style.display = "none"
     loadChatMessages()
@@ -223,30 +326,29 @@ function loadChatMessages() {
             throw new Error("401")
         }
         if (r.status === 403) {
-            msgBox.innerHTML = `<p style="color:var(--red); text-align:center;">🚫 You are not authorized to access this order conversation.</p>`
+            msgBox.innerHTML = `<p style="color:var(--red); text-align:center;">You are not authorized to access this conversation.</p>`
             throw new Error("403")
         }
         return r.json()
     })
     .then(data => {
         if (!data || !data.success) {
-            msgBox.innerHTML = `<p style="color:var(--red); text-align:center;">${escapeHtml(data.message || "Failed to load chat.")}</p>`
+            msgBox.innerHTML = `<p style="color:var(--red); text-align:center;">${escapeHtml(data.message || "Unable to load chat. Please try again.")}</p>`
             return
         }
 
         const o = data.order || {}
-        currentChatIsSeller = !!data.is_seller
 
         // Render context header
         let locText = ""
         if (o.fulfillment_type === 'delivery') {
             if (data.is_seller && o.buyer_location) {
-                locText = `🛵 <strong>Deliver to:</strong> ${[o.buyer_location.year, escapeHtml(o.buyer_location.hostel_name || 'Campus Hostel'), 'Room ' + escapeHtml(o.buyer_location.room_number || '-')].filter(Boolean).join(' • ')}`
+                locText = `<strong>Deliver to:</strong> ${[o.buyer_location.year, escapeHtml(o.buyer_location.hostel_name || 'Campus Hostel'), 'Room ' + escapeHtml(o.buyer_location.room_number || '-')].filter(Boolean).join(' · ')}`
             } else {
-                locText = `🛵 <strong>Fulfillment:</strong> Room Delivery (Seller: ${escapeHtml(o.seller_location ? o.seller_location.hostel_name : 'Campus Hostel')})`
+                locText = `<strong>Fulfillment:</strong> Room Delivery (Seller: ${escapeHtml(o.seller_location ? o.seller_location.hostel_name : 'Campus Hostel')})`
             }
         } else {
-            locText = `🏃 <strong>Pickup Location:</strong> ${escapeHtml(o.seller_location ? o.seller_location.hostel_name : 'Campus Hostel')} • Room ${escapeHtml(o.seller_location ? o.seller_location.room_number : '-')}`
+            locText = `<strong>Pickup Location:</strong> ${escapeHtml(o.seller_location ? o.seller_location.hostel_name : 'Campus Hostel')} · Room ${escapeHtml(o.seller_location ? o.seller_location.room_number : '-')}`
         }
 
         contextBox.innerHTML = `
@@ -255,6 +357,13 @@ function loadChatMessages() {
                 <strong style="color:var(--brand);">Total: ₹${o.grand_total}</strong>
             </div>
         `
+
+        // Item selection for offers
+        const items = data.items || []
+        const itemSelect = document.getElementById("offer-item-select")
+        if (itemSelect) {
+            itemSelect.innerHTML = items.map(it => `<option value="${it.id}">${escapeHtml(it.name)} (Current: ₹${it.price})</option>`).join("")
+        }
 
         // Show/hide seller offer button
         if (data.is_seller && (o.payment_status === "pending" || o.payment_status === "rejected") && !data.is_read_only) {
@@ -276,17 +385,16 @@ function loadChatMessages() {
         const offers = data.offers || []
 
         if (messages.length === 0 && offers.length === 0) {
-            msgBox.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">No messages yet. Send a message to coordinate delivery or ask about products!</p>`
+            msgBox.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">No messages yet. Send a message to coordinate delivery!</p>`
             return
         }
 
         let html = ""
 
-        // Map offers by ID/order
         const pendingOffers = offers.filter(of => of.status === 'pending')
 
         messages.forEach(m => {
-            const isMe = m.sender_id === currentUserId
+            const isMe = Number(m.sender_id) === currentUserId
             const roleBadge = m.sender_role ? `<span style="font-weight:normal; opacity:0.75;">(${m.sender_role})</span>` : ""
 
             html += `
@@ -297,32 +405,30 @@ function loadChatMessages() {
             `
         })
 
-        // Append active pending offer card if any
+        // Every pending offer stays visible. Offers can target different order items.
         if (pendingOffers.length > 0) {
-            const latestOffer = pendingOffers[0]
-            const isBuyer = data.is_buyer
-
-            html += `
+            const isBuyer = !!data.is_buyer
+            html += pendingOffers.map(offer => `
                 <div class="offer-card">
                     <div class="offer-card-header">
-                        <span>🏷️ Custom Price Offer: ${escapeHtml(latestOffer.item_name || 'Item')}</span>
+                        <span>Custom Price Offer: ${escapeHtml(offer.item_name || 'Item')}</span>
                         <span class="badge badge-orange">Pending</span>
                     </div>
                     <div style="margin-bottom:8px;">
-                        Offered Unit Price: <span class="offer-price-tag">₹${latestOffer.offered_price}</span>
-                        <span class="offer-orig-price">₹${latestOffer.original_price}</span>
-                        ${latestOffer.message ? `<br><small style="color:var(--text-2); font-style:italic;">"${escapeHtml(latestOffer.message)}"</small>` : ""}
+                        Offered Unit Price: <span class="offer-price-tag">₹${offer.offered_price}</span>
+                        <span class="offer-orig-price">₹${offer.original_price}</span>
+                        ${offer.message ? `<br><small style="color:var(--text-2); font-style:italic;">"${escapeHtml(offer.message)}"</small>` : ""}
                     </div>
                     ${
                         isBuyer && (o.payment_status === "pending" || o.payment_status === "rejected")
                         ? `<div style="display:flex; gap:8px; margin-top:8px;">
-                            <button class="btn btn-success" style="font-size:0.78rem; padding:4px 10px;" onclick="acceptCustomOffer(${latestOffer.id})">✅ Accept Offer</button>
-                            <button class="btn btn-danger" style="font-size:0.78rem; padding:4px 10px;" onclick="rejectCustomOffer(${latestOffer.id})">❌ Decline</button>
+                            <button class="btn btn-success" style="font-size:0.78rem; padding:4px 10px;" onclick="acceptCustomOffer(${offer.id})">Accept Offer</button>
+                            <button class="btn btn-danger" style="font-size:0.78rem; padding:4px 10px;" onclick="rejectCustomOffer(${offer.id})">Decline</button>
                            </div>`
-                        : `<p style="font-size:0.75rem; color:var(--text-3); margin:0;">Waiting for buyer response…</p>`
+                        : `<p style="font-size:0.75rem; color:var(--text-3); margin:0;">Waiting for response…</p>`
                     }
                 </div>
-            `
+            `).join("")
         }
 
         msgBox.innerHTML = html
@@ -330,7 +436,7 @@ function loadChatMessages() {
     })
     .catch(err => {
         if (err.message !== "401" && err.message !== "403") {
-            msgBox.innerHTML = `<p style="color:var(--red); font-size:0.8rem; text-align:center;">Network error — Could not load messages.</p>`
+            msgBox.innerHTML = `<p style="color:var(--red); font-size:0.8rem; text-align:center;">Unable to load chat. Please try again.</p>`
         }
     })
 }
@@ -358,41 +464,9 @@ function sendChatMessage() {
             toast(data.message, "error")
         }
     })
-    .catch(() => toast("Failed to send message", "error"))
-}
-
-function sendCustomOffer() {
-    if (!currentChatOrderId) return
-    const priceInput = document.getElementById("offer-price-input")
-    const noteInput = document.getElementById("offer-note-input")
-    const price = parseFloat(priceInput.value)
-    const note = noteInput.value.trim()
-
-    if (isNaN(price) || price <= 0) {
-        toast("Please enter a valid offered price", "error")
-        return
-    }
-
-    fetch(API + "/api/orders/" + currentChatOrderId + "/offers", {
-        method: "POST",
-        headers: {
-            ...authHeaders(),
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ offered_price: price, message: note })
+    .catch(() => {
+        toast("Failed to send message", "error")
     })
-    .then(r => r.json())
-    .then(data => {
-        toast(data.message, data.success ? "success" : "error")
-        if (data.success) {
-            priceInput.value = ""
-            noteInput.value = ""
-            document.getElementById("offer-input-fields").style.display = "none"
-            loadChatMessages()
-            loadBuyerOrders()
-        }
-    })
-    .catch(() => toast("Failed to send offer", "error"))
 }
 
 function acceptCustomOffer(offerId) {
@@ -409,7 +483,9 @@ function acceptCustomOffer(offerId) {
             loadBuyerOrders()
         }
     })
-    .catch(() => toast("Failed to accept offer", "error"))
+    .catch(() => {
+        toast("Failed to accept offer", "error")
+    })
 }
 
 function rejectCustomOffer(offerId) {
@@ -425,41 +501,9 @@ function rejectCustomOffer(offerId) {
             loadChatMessages()
         }
     })
-    .catch(() => toast("Failed to reject offer", "error"))
+    .catch(() => {
+        toast("Failed to decline offer", "error")
+    })
 }
 
-/* ================================================
-   PAYMENT PROOF SUBMISSION
-================================================ */
-
-function submitPayment(orderId) {
-    const utr = (document.getElementById("utr-" + orderId).value || "").trim()
-    const screenshot = document.getElementById("ss-" + orderId).files[0]
-
-    if (!screenshot) {
-        toast("Please upload your payment screenshot", "error")
-        return
-    }
-
-    const formData = new FormData()
-    formData.append("payment_utr", utr)
-    formData.append("payment_screenshot", screenshot)
-
-    fetch(API + "/api/orders/" + orderId + "/pay", {
-        method: "POST",
-        headers: { "authorization": getToken() },
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        toast(data.message, data.success ? "success" : "error")
-        if (data.success) {
-            closeOrderDetailModal()
-            loadBuyerOrders()
-        }
-    })
-    .catch(() => toast("Failed to submit payment", "error"))
-}
-
-// Initial load
-loadBuyerOrders()
+document.addEventListener("DOMContentLoaded", loadBuyerOrders)

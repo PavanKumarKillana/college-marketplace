@@ -5,6 +5,30 @@ if (localStorage.getItem("role") !== "admin") {
     window.location.href = "index.html"
 }
 
+function switchAdminTab(tabName) {
+    const sections = ["overview", "users", "products", "orders", "reports", "hostels"]
+    sections.forEach(section => {
+        const panel = document.getElementById("admin-sec-" + section)
+        const tab = document.getElementById("admin-tab-" + section)
+        if (panel) panel.hidden = section !== tabName
+        if (tab) tab.classList.toggle("active", section === tabName)
+    })
+
+    const loaders = {
+        users: loadUsers,
+        products: loadProducts,
+        orders: loadOrders,
+        reports: loadReports,
+        hostels: loadHostelsAdmin
+    }
+    if (loaders[tabName]) loaders[tabName]()
+}
+
+function setAdminStat(id, value) {
+    const stat = document.getElementById(id)
+    if (stat) stat.textContent = String(value)
+}
+
 
 /* =========================
    USERS
@@ -24,42 +48,45 @@ function loadUsers() {
         }
 
         if (data.length === 0) {
+            setAdminStat("admin-stat-users", 0)
             box.innerHTML = "<p>No users found.</p>"
             return
         }
+
+        setAdminStat("admin-stat-users", data.length)
 
         box.innerHTML = data.map(u => {
             const isBlocked = u.is_blocked === 1
             const isSeller = u.role === "seller" || u.seller_id
             const strikeCount = u.strike_count || 0
-            const hostelDisp = u.hostel_name ? `📍 ${escapeHtml(u.hostel_name)} (${escapeHtml(u.hostel_code || '')})` : `<span style="color:#f59e0b;">📍 Not Set</span>`
+            const hostelDisp = u.hostel_name ? `${escapeHtml(u.hostel_name)} (${escapeHtml(u.hostel_code || '')})` : `<span style="color:#f59e0b;">Not set</span>`
 
             return `
                 <div class="card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                     <div>
                         <strong>#${u.id}</strong> ${escapeHtml(u.name || "Unnamed")} (${escapeHtml(u.email)})<br>
                         Role: <strong>${escapeHtml(u.role || "-")}</strong> |
-                        Year: <strong>${u.year ? `🎓 ${escapeHtml(u.year)}` : '<span style="color:#f59e0b;">Not Set</span>'}</strong> |
+                        Year: <strong>${u.year ? escapeHtml(u.year) : '<span style="color:#f59e0b;">Not set</span>'}</strong> |
                         Hostel: <strong>${hostelDisp}</strong> |
                         Room: <strong>${escapeHtml(u.room_number || "-")}</strong><br>
-                        Status: <strong style="color:${isBlocked ? 'var(--red)' : 'var(--green)'}">${isBlocked ? 'SUSPENDED 🚫' : 'ACTIVE ✅'}</strong>
+                        Status: <strong style="color:${isBlocked ? 'var(--red)' : 'var(--green)'}">${isBlocked ? 'Suspended' : 'Active'}</strong>
                         ${
                             isSeller
-                            ? ` | Shop: <strong>${escapeHtml(u.store_name || "Active")}</strong> | Strikes: <strong style="color:${strikeCount >= 3 ? 'var(--red)' : strikeCount > 0 ? '#f59e0b' : 'var(--green)'};">${strikeCount}/3 ⚡</strong>`
+                            ? ` | Shop: <strong>${escapeHtml(u.store_name || "Active")}</strong> | Strikes: <strong style="color:${strikeCount >= 3 ? 'var(--red)' : strikeCount > 0 ? '#f59e0b' : 'var(--green)'};">${strikeCount}/3</strong>`
                             : ''
                         }
                     </div>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button class="cart-btn" style="background:var(--indigo); font-size:0.8rem; padding:6px 10px;" onclick="changeUserHostelAdmin(${u.id}, '${escapeHtml(u.name || u.email)}')">📍 Edit Hostel</button>
+                        <button class="cart-btn" style="background:var(--indigo); font-size:0.8rem; padding:6px 10px;" onclick="changeUserHostelAdmin(${u.id}, '${escapeHtml(u.name || u.email)}')">Edit location</button>
                         ${
                             isSeller && u.seller_id
-                            ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.8rem; padding:6px 10px;" onclick="issueSellerStrike(${u.seller_id}, '${escapeHtml(u.store_name || 'Seller')}')">⚡ Issue Strike</button>`
+                            ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.8rem; padding:6px 10px;" onclick="issueSellerStrike(${u.seller_id}, '${escapeHtml(u.store_name || 'Seller')}')">Issue Strike</button>`
                             : ''
                         }
                         ${
                             isBlocked
-                            ? `<button class="cart-btn" style="background:var(--green); font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 0)">✅ Unblock</button>`
-                            : `<button class="cart-btn" style="background:#ff4b2b; font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 1)">🚫 Block</button>`
+                            ? `<button class="cart-btn" style="background:var(--green); font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 0)">Unblock</button>`
+                            : `<button class="cart-btn" style="background:#ff4b2b; font-size:0.8rem; padding:6px 12px;" onclick="toggleUserBlock(${u.id}, 1)">Block</button>`
                         }
                     </div>
                 </div>
@@ -190,9 +217,12 @@ function loadProducts() {
         }
 
         if (data.length === 0) {
+            setAdminStat("admin-stat-products", 0)
             box.innerHTML = "<p>No products found in catalog.</p>"
             return
         }
+
+        setAdminStat("admin-stat-products", data.length)
 
         box.innerHTML = data.map(p => {
             const active = p.is_active === 1 || p.is_active === null || p.is_active === undefined
@@ -233,11 +263,11 @@ function loadProducts() {
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                         ${
                             active
-                            ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.8rem; padding:6px 12px;" onclick="setProductStatus(${Number(p.id)}, 0)">👁️ Hide</button>`
-                            : `<button class="cart-btn" style="background:var(--green); font-size:0.8rem; padding:6px 12px;" onclick="setProductStatus(${Number(p.id)}, 1)">🟢 Restore</button>`
+                            ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.8rem; padding:6px 12px;" onclick="setProductStatus(${Number(p.id)}, 0)">Hide</button>`
+                            : `<button class="cart-btn" style="background:var(--green); font-size:0.8rem; padding:6px 12px;" onclick="setProductStatus(${Number(p.id)}, 1)">Restore</button>`
                         }
                         <button class="cart-btn" style="background:#ef4444; font-size:0.8rem; padding:6px 12px;" onclick="deleteProduct(${Number(p.id)})">
-                            🗑️ Delete Permanently
+                            Delete permanently
                         </button>
                     </div>
 
@@ -276,7 +306,7 @@ function setProductStatus(id, isActive) {
 }
 
 function deleteProduct(id) {
-    if (!confirm("⚠️ PERMANENT DELETE WARNING:\nAre you sure you want to PERMANENTLY delete this useless/unwanted product from the database catalog?")) {
+    if (!confirm("Permanently delete this product from the catalog? This cannot be undone.")) {
         return
     }
 
@@ -315,9 +345,12 @@ function loadOrders() {
         }
 
         if (data.length === 0) {
+            setAdminStat("admin-stat-orders", 0)
             box.innerHTML = "<p>No orders found.</p>"
             return
         }
+
+        setAdminStat("admin-stat-orders", data.length)
 
         box.innerHTML = data.map(o => `
             <div class="card" style="margin-bottom:10px;">
@@ -326,7 +359,7 @@ function loadOrders() {
                 ${o.payment_utr ? `<br>UPI/UTR: <strong>${escapeHtml(o.payment_utr)}</strong>` : '<br>UPI/UTR: <em>Not provided (optional)</em>'}
                 ${
                     o.payment_screenshot_url
-                    ? `<br><a href="${mediaUrl(o.payment_screenshot_url)}" target="_blank" class="btn btn-secondary" style="display:inline-block; margin-top:8px; font-size:0.8rem;">🖼️ View Payment Screenshot</a>`
+                    ? `<br><a href="${mediaUrl(o.payment_screenshot_url)}" target="_blank" class="btn btn-secondary" style="display:inline-block; margin-top:8px; font-size:0.8rem;">View payment screenshot</a>`
                     : ""
                 }
             </div>
@@ -355,9 +388,12 @@ function loadReports() {
             return
         }
         if (data.length === 0) {
-            box.innerHTML = "<p style='color:var(--text-3); font-size:0.88rem;'>No active reports. Community is clean! 🎉</p>"
+            setAdminStat("admin-stat-reports", 0)
+            box.innerHTML = "<p style='color:var(--text-3); font-size:0.88rem;'>No active reports.</p>"
             return
         }
+
+        setAdminStat("admin-stat-reports", data.filter(report => report.status === "open").length)
 
         box.innerHTML = data.map(r => {
             const isOpen = r.status === 'open'
@@ -374,10 +410,10 @@ function loadReports() {
                         ${
                             isOpen
                             ? `<div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                ${r.product_id ? `<button class="cart-btn" style="background:#ff4b2b; font-size:0.78rem; padding:6px 10px;" onclick="setProductStatus(${r.product_id}, 0)">👁️ Hide Product</button>` : ''}
-                                ${r.seller_id ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.78rem; padding:6px 10px;" onclick="issueSellerStrike(${r.seller_id}, '${escapeHtml(r.store_name || 'Seller')}')">⚡ Issue Strike</button>` : ''}
-                                <button class="cart-btn" style="background:var(--green); font-size:0.78rem; padding:6px 10px;" onclick="resolveReport(${r.id}, 'resolved')">✅ Resolve</button>
-                                <button class="cart-btn" style="background:var(--surface-2); color:var(--text); font-size:0.78rem; padding:6px 10px;" onclick="resolveReport(${r.id}, 'dismissed')">✖ Dismiss</button>
+                                ${r.product_id ? `<button class="cart-btn" style="background:#ff4b2b; font-size:0.78rem; padding:6px 10px;" onclick="setProductStatus(${r.product_id}, 0)">Hide product</button>` : ''}
+                                ${r.seller_id ? `<button class="cart-btn" style="background:#f59e0b; font-size:0.78rem; padding:6px 10px;" onclick="issueSellerStrike(${r.seller_id}, '${escapeHtml(r.store_name || 'Seller')}')">Issue Strike</button>` : ''}
+                                <button class="cart-btn" style="background:var(--green); font-size:0.78rem; padding:6px 10px;" onclick="resolveReport(${r.id}, 'resolved')">Resolve</button>
+                                <button class="cart-btn" style="background:var(--surface-2); color:var(--text); font-size:0.78rem; padding:6px 10px;" onclick="resolveReport(${r.id}, 'dismissed')">Dismiss</button>
                                </div>`
                             : `<span style="font-size:0.8rem; color:var(--text-3);">Resolved</span>`
                         }
@@ -432,8 +468,8 @@ function loadHostelsAdmin() {
             return `
                 <div class="card" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; padding:10px 15px;">
                     <div>
-                        <strong>📍 ${escapeHtml(h.name)}</strong> (Code: <code>${escapeHtml(h.code)}</code>)<br>
-                        Status: <strong style="color:${active ? 'var(--green)' : 'var(--red)'}">${active ? 'ACTIVE ✅' : 'INACTIVE 🚫'}</strong>
+                        <strong>${escapeHtml(h.name)}</strong> (Code: <code>${escapeHtml(h.code)}</code>)<br>
+                        Status: <strong style="color:${active ? 'var(--green)' : 'var(--red)'}">${active ? 'Active' : 'Inactive'}</strong>
                     </div>
                     <div>
                         ${
@@ -503,20 +539,6 @@ function toggleHostelStatus(id, isActive) {
 
 
 /* =========================
-   HELPERS
-========================= */
-
-function escapeHtml(value) {
-    return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;")
-}
-
-
-/* =========================
    START
 ========================= */
 
@@ -525,4 +547,3 @@ loadProducts()
 loadOrders()
 loadReports()
 loadHostelsAdmin()
-

@@ -16,116 +16,165 @@
             <span class="brand-sub">Amrita Campus Marketplace</span>
         </div>
     </a>
-    <a href="index.html"  class="nav-link">🏠 Shop</a>
-    <a href="orders.html" class="nav-link">📦 Buyer Orders</a>
-    <a href="seller.html" class="nav-link" style="color:var(--brand);">🏪 Seller Dashboard</a>
-    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <a href="index.html" class="nav-link">Shop</a>
+        <a href="orders.html" class="nav-link">My Orders</a>
+        <a href="seller.html" class="nav-link nav-link-active">Seller Dashboard</a>
+        <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+    </div>
 </nav>
 
 <div id="toast-container"></div>
 
 <div class="page">
-
-    <p style="color:var(--text-2); font-size:0.85rem; margin-bottom:20px;">
-        🏪 Sell snacks from your room. Your listings appear on the home page for all campus buyers.
-    </p>
-
-    <!-- My Shop Settings -->
-    <div class="card seller-form" style="margin-bottom:16px;">
-        <h2 class="section-title" style="margin-top:0;">My Shop Settings</h2>
-
-        <span class="input-label">Store name</span>
-        <input id="store-name" class="input-field" placeholder="e.g. Room 214 Snacks">
-
-        <span class="input-label">Room number</span>
-        <input id="store-room" class="input-field" placeholder="e.g. C-214">
-
-        <span class="input-label">UPI ID</span>
-        <input id="upi-id" class="input-field" placeholder="e.g. yourname@okaxis">
-
-        <span class="input-label">UPI QR Code image (buyers scan this to pay)</span>
-        <input id="upi-qr" class="input-field" type="file" accept="image/png,image/jpeg,image/webp">
-        <div class="image-preview-wrap" id="upi-qr-wrap">
-            <img id="upi-qr-preview" alt="QR preview">
-            <span style="font-size:0.78rem; color:var(--text-2);">QR code preview</span>
-        </div>
-
-        <button class="btn btn-primary" style="margin-top:14px; width:100%;" onclick="saveShop()">
-            💾 Save Shop Settings
-        </button>
-    </div>
-
-    <!-- Add / Edit Product -->
-    <div class="card seller-form" style="margin-bottom:16px;">
-        <h2 class="section-title" style="margin-top:0;">Add / Edit Product</h2>
-        <input type="hidden" id="edit-id" value="">
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div>
-                <span class="input-label">Product name</span>
-                <input id="p-name" class="input-field" placeholder="e.g. Lays Classic">
-            </div>
-            <div>
-                <span class="input-label">Price (₹)</span>
-                <input id="p-price" class="input-field" type="number" placeholder="20">
-            </div>
-        </div>
-
-        <span class="input-label">Description</span>
-        <textarea id="p-desc" class="input-field" placeholder="Short description…"></textarea>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div>
-                <span class="input-label">Category</span>
-                <input id="p-cat" class="input-field" placeholder="Snacks, Drinks…">
-            </div>
-            <div>
-                <span class="input-label">Stock quantity</span>
-                <input id="p-stock" class="input-field" type="number" placeholder="10">
-            </div>
-        </div>
-
-        <span class="input-label">Delivery charge (₹) — 0 if free</span>
-        <input id="p-delivery-charge" class="input-field" type="number" placeholder="0">
-
-        <span class="input-label">Product image</span>
-        <input id="p-image" class="input-field" type="file" accept="image/png,image/jpeg,image/webp">
-        <div class="image-preview-wrap" id="p-image-wrap">
-            <img id="p-image-preview" alt="Product preview">
-            <span style="font-size:0.78rem; color:var(--text-2);">Image preview</span>
-        </div>
-
-        <div style="margin-top:10px; display:flex; gap:20px; flex-wrap:wrap;">
-            <label class="checkbox-row">
-                <input type="checkbox" id="p-pickup" checked> Pickup available
-            </label>
-            <label class="checkbox-row">
-                <input type="checkbox" id="p-delivery" checked> Delivery available
-            </label>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
-            <button class="btn btn-primary" onclick="saveProduct()">💾 Save Product</button>
-            <button class="btn btn-secondary" onclick="clearProductForm()">✕ Clear form</button>
+    <!-- Header & Navigation Tabs -->
+    <div style="margin-bottom:20px;">
+        <h2 style="font-size:1.3rem; margin:0 0 12px 0; color:var(--text-1);">Seller Dashboard</h2>
+        <div class="tab-nav" style="display:flex; gap:8px; border-bottom:1px solid var(--border); padding-bottom:8px; flex-wrap:wrap;">
+            <button class="tab-btn active" id="tab-overview" onclick="switchSellerTab('overview')">Overview</button>
+            <button class="tab-btn" id="tab-products" onclick="switchSellerTab('products')">Products</button>
+            <button class="tab-btn" id="tab-orders" onclick="switchSellerTab('orders')">Incoming Orders</button>
+            <button class="tab-btn" id="tab-settings" onclick="switchSellerTab('settings')">Shop Settings</button>
         </div>
     </div>
 
-    <!-- My Products -->
-    <p class="section-heading" style="margin-top:24px;">My Products</p>
-    <div id="my-products" class="grid" style="margin-bottom:30px;"></div>
+    <!-- SECTION: OVERVIEW -->
+    <div id="sec-overview" class="seller-section">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:24px;">
+            <div class="card" style="padding:16px;">
+                <div style="font-size:0.8rem; color:var(--text-3); font-weight:600; text-transform:uppercase;">My Listings</div>
+                <div id="stat-products-count" style="font-size:1.8rem; font-weight:700; color:var(--brand); margin:4px 0 8px 0;">0</div>
+                <button class="btn btn-secondary" style="font-size:0.78rem; padding:4px 10px; width:100%;" onclick="switchSellerTab('products')">View Products</button>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:0.8rem; color:var(--text-3); font-weight:600; text-transform:uppercase;">Incoming Orders</div>
+                <div id="stat-orders-count" style="font-size:1.8rem; font-weight:700; color:var(--brand); margin:4px 0 8px 0;">0</div>
+                <button class="btn btn-secondary" style="font-size:0.78rem; padding:4px 10px; width:100%;" onclick="switchSellerTab('orders')">View Orders</button>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:0.8rem; color:var(--text-3); font-weight:600; text-transform:uppercase;">Shop Profile</div>
+                <div id="stat-store-name" style="font-size:1.1rem; font-weight:600; color:var(--text-1); margin:4px 0 8px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">My Shop</div>
+                <button class="btn btn-secondary" style="font-size:0.78rem; padding:4px 10px; width:100%;" onclick="switchSellerTab('settings')">Manage Shop</button>
+            </div>
+        </div>
 
-    <!-- Incoming Orders -->
-    <p class="section-heading">Incoming Orders</p>
-    <div id="seller-orders" style="max-width:800px;"></div>
+        <div class="card" style="padding:16px;">
+            <h3 style="font-size:1rem; margin-top:0; margin-bottom:12px;">Recent Incoming Orders</h3>
+            <div id="overview-orders-preview"></div>
+        </div>
+    </div>
 
+    <!-- SECTION: PRODUCTS -->
+    <div id="sec-products" class="seller-section" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="font-size:1.1rem; margin:0;">Product Catalog</h3>
+            <button class="btn btn-primary" style="font-size:0.82rem; padding:6px 14px;" onclick="openProductFormModal()">+ Add New Product</button>
+        </div>
+        <div id="my-products" class="grid" style="margin-bottom:30px;"></div>
+    </div>
+
+    <!-- SECTION: ORDERS -->
+    <div id="sec-orders" class="seller-section" style="display:none;">
+        <h3 style="font-size:1.1rem; margin-top:0; margin-bottom:14px;">Incoming Customer Orders</h3>
+        <div id="seller-orders" style="max-width:800px;"></div>
+    </div>
+
+    <!-- SECTION: SETTINGS -->
+    <div id="sec-settings" class="seller-section" style="display:none;">
+        <div class="card seller-form" style="max-width:600px; margin:0 auto;">
+            <h3 style="margin-top:0; font-size:1.1rem;">Shop &amp; Payment Settings</h3>
+
+            <span class="input-label">Store Name</span>
+            <input id="store-name" class="input-field" placeholder="e.g. Room 214 Snacks">
+
+            <span class="input-label">Room Number</span>
+            <input id="store-room" class="input-field" placeholder="e.g. C-214">
+
+            <span class="input-label">UPI ID for Receiving Payments</span>
+            <input id="upi-id" class="input-field" placeholder="e.g. yourname@okaxis">
+
+            <span class="input-label">UPI QR Code Image</span>
+            <input id="upi-qr" class="input-field" type="file" accept="image/png,image/jpeg,image/webp">
+            <div class="image-preview-wrap" id="upi-qr-wrap">
+                <img id="upi-qr-preview" alt="QR preview">
+                <span style="font-size:0.78rem; color:var(--text-3);">Uploaded QR Code preview</span>
+            </div>
+
+            <button class="btn btn-primary" style="margin-top:14px; width:100%;" onclick="saveShop()">
+                Save Shop Settings
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD / EDIT PRODUCT MODAL -->
+<div id="product-form-modal" class="modal-overlay">
+    <div class="modal-dialog" style="max-width:540px;">
+        <div class="modal-header">
+            <h3 id="product-modal-title">Add Product</h3>
+            <button onclick="closeProductFormModal()" class="modal-close-btn" aria-label="Close modal">×</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-id" value="">
+
+            <div class="form-grid two-columns">
+                <div>
+                    <span class="input-label">Product Name</span>
+                    <input id="p-name" class="input-field" placeholder="e.g. Lays Classic">
+                </div>
+                <div>
+                    <span class="input-label">Price (₹)</span>
+                    <input id="p-price" class="input-field" type="number" placeholder="20">
+                </div>
+            </div>
+
+            <span class="input-label">Description</span>
+            <textarea id="p-desc" class="input-field" placeholder="Short description…"></textarea>
+
+            <div class="form-grid two-columns">
+                <div>
+                    <span class="input-label">Category</span>
+                    <input id="p-cat" class="input-field" placeholder="Snacks, Drinks…">
+                </div>
+                <div>
+                    <span class="input-label">Stock Quantity</span>
+                    <input id="p-stock" class="input-field" type="number" placeholder="10">
+                </div>
+            </div>
+
+            <span class="input-label">Delivery Charge (₹) — 0 if free</span>
+            <input id="p-delivery-charge" class="input-field" type="number" placeholder="0">
+
+            <span class="input-label">Product Image</span>
+            <input id="p-image" class="input-field" type="file" accept="image/png,image/jpeg,image/webp">
+            <div class="image-preview-wrap" id="p-image-wrap">
+                <img id="p-image-preview" alt="Product preview">
+                <span style="font-size:0.78rem; color:var(--text-3);">Image preview</span>
+            </div>
+
+            <div style="margin-top:10px; display:flex; gap:20px; flex-wrap:wrap;">
+                <label class="checkbox-row">
+                    <input type="checkbox" id="p-pickup" checked> Pickup Available
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="p-delivery" checked> Delivery Available
+                </label>
+            </div>
+
+            <div class="form-grid two-columns" style="margin-top:14px;">
+                <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+                <button class="btn btn-secondary" onclick="clearProductForm()">Clear Form</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ORDER DETAIL MODAL -->
 <div id="order-detail-modal" class="modal-overlay">
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="max-width:600px;">
         <div class="modal-header">
-            <h3 id="detail-modal-title">📋 Order Details</h3>
-            <button onclick="closeOrderDetailModal()" class="modal-close-btn">✖</button>
+            <h3 id="detail-modal-title">Order Details</h3>
+            <button onclick="closeOrderDetailModal()" class="modal-close-btn" aria-label="Close modal">×</button>
         </div>
         <div id="detail-modal-body" class="modal-body"></div>
     </div>
@@ -133,19 +182,19 @@
 
 <!-- ORDER CHAT & NEGOTIATION MODAL -->
 <div id="chat-modal" class="modal-overlay">
-    <div class="modal-dialog" style="max-width:560px;">
+    <div class="modal-dialog chat-dialog" style="max-width:560px;">
         <div class="modal-header">
-            <h3 id="chat-modal-title">💬 Order Chat</h3>
-            <button onclick="closeChatModal()" class="modal-close-btn">✖</button>
+            <h3 id="chat-modal-title">Order Conversation</h3>
+            <button onclick="closeChatModal()" class="modal-close-btn" aria-label="Close modal">×</button>
         </div>
-        <div class="modal-body" style="display:flex; flex-direction:column; padding:12px;">
+        <div class="modal-body chat-modal-body" style="display:flex; flex-direction:column; padding:12px;">
             <div id="chat-context-box" class="chat-context-bar"></div>
 
             <!-- Seller Create Offer Bar -->
             <div id="seller-offer-bar" style="display:none; background:var(--bg-3); border:1px dashed var(--brand); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong style="color:var(--brand); font-size:0.82rem;">🏷️ Create Price Offer for Buyer</strong>
-                    <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="toggleOfferInputs()">+ Custom Price</button>
+                    <strong style="color:var(--brand); font-size:0.82rem;">Create Price Offer for Buyer</strong>
+                    <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="toggleOfferInputs()">Custom Price</button>
                 </div>
                 <div id="offer-input-fields" style="display:none; margin-top:8px;">
                     <select id="offer-item-select" class="input-field" style="margin-bottom:6px; font-size:0.82rem; padding:6px;"></select>

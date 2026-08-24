@@ -20,7 +20,16 @@ function requireLogin() {
 }
 
 function authHeaders() {
-    return { "Content-Type": "application/json", "authorization": getToken() }
+    const token = getToken()
+    return {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": "Bearer " + token } : {})
+    }
+}
+
+function authUploadHeaders() {
+    const token = getToken()
+    return token ? { "Authorization": "Bearer " + token } : {}
 }
 
 function logout() {
@@ -49,8 +58,7 @@ function toast(message, type) {
     if (!container) return
     const t = document.createElement("div")
     t.className = "toast toast-" + (type || "info")
-    const icons = { success: "✅", error: "❌", info: "ℹ️" }
-    t.innerHTML = `<span>${icons[type] || "ℹ️"}</span><span>${message}</span>`
+    t.textContent = message
     container.appendChild(t)
     setTimeout(() => t.remove(), 3200)
 }
@@ -71,4 +79,17 @@ function refreshCartCount() {
             if (Array.isArray(data)) updateCartBadge(data.length)
         })
         .catch(() => {})
+}
+
+/* ── Password Visibility Toggle ──────────────────── */
+function togglePasswordVisibility(inputId, btn) {
+    const input = typeof inputId === "string" ? document.getElementById(inputId) : inputId;
+    if (!input) return;
+    const isPassword = input.type === "password";
+    input.type = isPassword ? "text" : "password";
+    if (btn) {
+        btn.textContent = isPassword ? "Hide" : "Show";
+        btn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+        btn.setAttribute("aria-pressed", isPassword ? "true" : "false");
+    }
 }

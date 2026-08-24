@@ -3,69 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Control Center</title>
+    <title>Admin Dashboard — SnackDen</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav class="card nav-links" style="margin-bottom:30px;padding:15px 30px;">
-    <a href="index.html">Home</a>
-    <button class="cart-btn small-btn"
-            onclick="logout()"
-            style="background:#ff4b2b;">
-        Logout
-    </button>
+<nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+        <img src="amrita_logo.png" alt="Amrita">
+        <div>
+            <span class="brand-name">SnackDen</span>
+            <span class="brand-sub">Admin Dashboard</span>
+        </div>
+    </a>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <a href="index.html" class="nav-link">Marketplace</a>
+        <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+    </div>
 </nav>
 
-<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
-    <h2>⚙️ Admin Control Center</h2>
-    <p style="color:var(--text-2);">
-        Manage users, products and orders.
-    </p>
-</div>
+<div id="toast-container"></div>
 
-<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
-    <h2>👥 Users</h2>
-    <div id="users">
-        <p>Loading users...</p>
-    </div>
-</div>
+<main class="page">
+    <header class="dashboard-heading">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p>Review marketplace activity and manage campus settings.</p>
+        </div>
+    </header>
 
-<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
-    <h2>📦 Products</h2>
-    <div id="products">
-        <p>Loading products...</p>
-    </div>
-</div>
+    <nav class="tab-nav" aria-label="Admin dashboard sections">
+        <button class="tab-btn active" id="admin-tab-overview" onclick="switchAdminTab('overview')">Overview</button>
+        <button class="tab-btn" id="admin-tab-users" onclick="switchAdminTab('users')">Users</button>
+        <button class="tab-btn" id="admin-tab-products" onclick="switchAdminTab('products')">Products</button>
+        <button class="tab-btn" id="admin-tab-orders" onclick="switchAdminTab('orders')">Orders</button>
+        <button class="tab-btn" id="admin-tab-reports" onclick="switchAdminTab('reports')">Reports</button>
+        <button class="tab-btn" id="admin-tab-hostels" onclick="switchAdminTab('hostels')">Hostels</button>
+    </nav>
 
-<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
-    <h2>🚨 Moderation Reports Queue</h2>
-    <div id="reports">
-        <p>Loading reports...</p>
-    </div>
-</div>
+    <section id="admin-sec-overview" class="admin-section">
+        <div class="dashboard-stats">
+            <article class="card stat-card">
+                <span class="stat-label">Users</span>
+                <strong id="admin-stat-users" class="stat-value">—</strong>
+                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('users')">Manage users</button>
+            </article>
+            <article class="card stat-card">
+                <span class="stat-label">Products</span>
+                <strong id="admin-stat-products" class="stat-value">—</strong>
+                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('products')">Review products</button>
+            </article>
+            <article class="card stat-card">
+                <span class="stat-label">Orders</span>
+                <strong id="admin-stat-orders" class="stat-value">—</strong>
+                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('orders')">View orders</button>
+            </article>
+            <article class="card stat-card">
+                <span class="stat-label">Open reports</span>
+                <strong id="admin-stat-reports" class="stat-value">—</strong>
+                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('reports')">Review reports</button>
+            </article>
+        </div>
+        <section class="card compact-panel">
+            <h2>Quick actions</h2>
+            <p>Use a section above to manage users, listings, order payment proof, reports, and hostel buildings. Details stay in their own section to keep this overview simple.</p>
+        </section>
+    </section>
 
-<div class="card" style="max-width:1100px;margin:0 auto 20px auto;">
-    <h2>🏫 Hostel / Building Management</h2>
-    <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-        <input type="text" id="new-hostel-name" placeholder="Hostel Name (e.g., Amritam Hostel)" class="input-field" style="flex:2; margin:0;">
-        <input type="text" id="new-hostel-code" placeholder="Code (e.g., AMR)" class="input-field" style="flex:1; margin:0;">
-        <button class="btn btn-primary" onclick="addHostel()">+ Add Hostel</button>
-    </div>
-    <div id="hostels-list">
-        <p>Loading hostels...</p>
-    </div>
-</div>
+    <section id="admin-sec-users" class="admin-section" hidden>
+        <div class="section-header"><div><h2>Users</h2><p>Update locations, block accounts, and issue seller strikes.</p></div></div>
+        <div id="users" class="admin-list"><p>Loading users…</p></div>
+    </section>
 
-<div class="card" style="max-width:1100px;margin:0 auto;">
-    <h2>🧾 Orders</h2>
-    <div id="orders">
-        <p>Loading orders...</p>
-    </div>
-</div>
+    <section id="admin-sec-products" class="admin-section" hidden>
+        <div class="section-header"><div><h2>Products</h2><p>Hide, restore, or permanently remove listings.</p></div></div>
+        <div id="products" class="admin-list"><p>Loading products…</p></div>
+    </section>
+
+    <section id="admin-sec-orders" class="admin-section" hidden>
+        <div class="section-header"><div><h2>Orders</h2><p>Review order and payment status.</p></div></div>
+        <div id="orders" class="admin-list"><p>Loading orders…</p></div>
+    </section>
+
+    <section id="admin-sec-reports" class="admin-section" hidden>
+        <div class="section-header"><div><h2>Moderation reports</h2><p>Resolve reports or take listing and seller actions.</p></div></div>
+        <div id="reports" class="admin-list"><p>Loading reports…</p></div>
+    </section>
+
+    <section id="admin-sec-hostels" class="admin-section" hidden>
+        <div class="section-header"><div><h2>Hostels and buildings</h2><p>Create or enable campus building options.</p></div></div>
+        <div class="card compact-panel" style="margin-bottom:14px;">
+            <div class="inline-form">
+                <input type="text" id="new-hostel-name" placeholder="Hostel name" class="input-field">
+                <input type="text" id="new-hostel-code" placeholder="Code" class="input-field">
+                <button class="btn btn-primary" onclick="addHostel()">Add hostel</button>
+            </div>
+        </div>
+        <div id="hostels-list" class="admin-list"><p>Loading hostels…</p></div>
+    </section>
+</main>
 
 <script src="api.js"></script>
 <script src="admin.js"></script>
-
 </body>
 </html>

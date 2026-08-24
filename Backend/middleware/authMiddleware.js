@@ -7,23 +7,26 @@ function getJwtSecret(){
 }
 
 function verifyToken(req,res,next){
-    const token= req.headers["authorization"]
+    let token = req.headers.authorization;
     const secret=getJwtSecret()
     if(!token){
-        return res.json({
+        return res.status(401).json({
             success:false,
             message:"No token provided"
         })
     }
+    if(typeof token === "string" && /^Bearer\s+/i.test(token)){
+        token = token.replace(/^Bearer\s+/i, "").trim();
+    }
     if(!secret){
-        return res.json({
+        return res.status(500).json({
             success:false,
             message:"JWT_SECRET is missing in .env"
         })
     }
     jwt.verify(token,secret,(err,decoded)=>{
         if(err){
-            return res.json({
+            return res.status(401).json({
                 success:false,
                 message:"invalid Token"
             })
@@ -34,10 +37,10 @@ function verifyToken(req,res,next){
         // Dynamic DB check: ensure account is active and not suspended
         userModel.getUserById(req.userId,(uErr,result)=>{
             if(uErr || result.length===0){
-                return res.json({ success:false, message:"User not found" })
+                return res.status(401).json({ success:false, message:"User not found" })
             }
             if(result[0].is_blocked === 1){
-                return res.json({ success:false, message:"Your account has been suspended by an administrator." })
+                return res.status(403).json({ success:false, message:"Your account has been suspended by an administrator." })
             }
             next()
         })

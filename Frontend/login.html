@@ -23,15 +23,17 @@
 
         <!-- LOGIN FORM -->
         <div id="login-form">
-            <h3>Welcome back 👋</h3>
+            <h3>Welcome back</h3>
             <input type="email" id="login-email" placeholder="College email" class="input-field">
-            <input type="password" id="login-password" placeholder="Password" class="input-field"
-                   onkeydown="if(event.key==='Enter') loginUser()">
+            <div class="password-wrapper" style="margin-bottom:6px;">
+                <input type="password" id="login-password" placeholder="Password" class="input-field" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') loginUser()">
+                <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('login-password', this)">Show</button>
+            </div>
             <div style="text-align:right; margin-top:6px;">
                 <button class="toggle-link" style="font-size:0.8rem; color:var(--text-3);" onclick="showForgotForm()">Forgot password?</button>
             </div>
             <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="loginUser()">
-                Login →
+                Login
             </button>
             <p class="auth-footer">
                 New to SnackDen?
@@ -41,7 +43,7 @@
 
         <!-- FORGOT PASSWORD FORM -->
         <div id="forgot-form" style="display:none;">
-            <h3>🔑 Reset Password</h3>
+            <h3>Reset Password</h3>
 
             <!-- Step 1: Send OTP -->
             <div id="forgot-step-1">
@@ -50,7 +52,7 @@
                 </p>
                 <input type="email" id="forgot-email" placeholder="College email" class="input-field">
                 <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="sendOtp()">
-                    Send OTP Code →
+                    Send OTP Code
                 </button>
             </div>
 
@@ -62,7 +64,7 @@
                 <div id="otp-demo-alert" style="display:none; padding:8px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:6px; font-size:0.8rem; color:var(--green); margin-bottom:10px;"></div>
                 <input type="text" id="otp-input" placeholder="Enter 6-digit OTP" class="input-field" maxlength="6">
                 <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="verifyOtpCode()">
-                    Verify OTP →
+                    Verify OTP
                 </button>
                 <div style="text-align:center; margin-top:8px;">
                     <button class="toggle-link" style="font-size:0.78rem; color:var(--text-3);" onclick="sendOtp()">Resend OTP Code</button>
@@ -74,9 +76,12 @@
                 <p style="font-size:0.82rem; color:var(--text-2); margin-bottom:10px;">
                     OTP verified! Enter your new password below.
                 </p>
-                <input type="password" id="new-password-input" placeholder="New Password (min 6 chars)" class="input-field">
+                <div class="password-wrapper" style="margin-bottom:10px;">
+                    <input type="password" id="new-password-input" placeholder="New Password (min 6 chars)" class="input-field" style="margin-bottom:0;">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('new-password-input', this)">Show</button>
+                </div>
                 <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="submitNewPassword()">
-                    Save New Password & Login →
+                    Save New Password &amp; Login
                 </button>
             </div>
 
@@ -88,10 +93,13 @@
 
         <!-- REGISTER FORM -->
         <div id="register-form" style="display:none;">
-            <h3>Join SnackDen 🎉</h3>
+            <h3>Join SnackDen</h3>
             <input type="text"     id="reg-name"     placeholder="Your name"              class="input-field">
             <input type="email"    id="reg-email"    placeholder="College email"           class="input-field">
-            <input type="password" id="reg-password" placeholder="Password"                class="input-field">
+            <div class="password-wrapper" style="margin-bottom:12px;">
+                <input type="password" id="reg-password" placeholder="Password" class="input-field" style="margin-bottom:0;">
+                <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('reg-password', this)">Show</button>
+            </div>
 
             <select id="reg-year" class="input-field" style="margin-bottom:12px; background:var(--surface); color:var(--text);">
                 <option value="">-- Select Academic Year --</option>
@@ -108,16 +116,16 @@
             <input type="text" id="reg-room" placeholder="Room number (optional)" class="input-field">
 
             <p style="font-size:0.78rem; color:var(--text-2); margin:6px 0 2px 0;">
-                🎓 <strong>Year</strong> and 📍 <strong>Hostel</strong> are separate — a 3rd-year student can live in any hostel building.
+                <strong>Year</strong> and <strong>hostel</strong> are separate — a 3rd-year student can live in any hostel building.
             </p>
             <p style="font-size:0.78rem; color:var(--text-2); margin:2px 0 2px 0;">
-                📍 Your hostel &amp; room number help coordinate order pickups and deliveries.
+                Your hostel and room number help coordinate order pickups and deliveries.
             </p>
             <p style="font-size:0.78rem; color:var(--text-2); margin:2px 0 10px 0;">
-                📧 Use an accessible email — needed for password recovery.
+                Use an accessible email — needed for password recovery.
             </p>
             <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="registerUser()">
-                Create account →
+                Create account
             </button>
             <p class="auth-footer">
                 Already have an account?

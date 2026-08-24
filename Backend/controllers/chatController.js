@@ -76,6 +76,8 @@ function getOrderMessages(req, res) {
 
                     res.json({
                         success: true,
+                        is_buyer: isBuyer,
+                        is_seller: isSeller,
                         order: {
                             id: order.id,
                             fulfillment_type: order.fulfillment_type,

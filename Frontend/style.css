@@ -1025,3 +1025,180 @@ select.input-field option { background: var(--bg-2); color: var(--text-1); }
         flex-direction: column;
     }
 }
+
+/* ── Password Visibility Toggle Widget ───────────────────────────── */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.password-wrapper input {
+    padding-right: 68px !important;
+}
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-3);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+.password-toggle-btn:hover,
+.password-toggle-btn:focus-visible {
+    color: var(--brand);
+    background-color: var(--bg-3);
+    outline: none;
+}
+
+/* ── Sectioned Dashboard Layouts ───────────── */
+.dashboard-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.dashboard-heading h1 {
+    font-size: 1.45rem;
+    margin: 0 0 4px;
+}
+
+.dashboard-heading p,
+.section-header p,
+.compact-panel p {
+    color: var(--text-2);
+    font-size: 0.86rem;
+    margin: 0;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 22px 0 12px;
+}
+
+.section-header h2 {
+    font-size: 1.08rem;
+    margin: 0 0 3px;
+}
+
+.tab-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+
+.tab-btn {
+    appearance: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 7px 10px;
+}
+
+.tab-btn:hover,
+.tab-btn:focus-visible {
+    background: var(--surface);
+    color: var(--text-1);
+    outline: none;
+}
+
+.tab-btn.active {
+    background: var(--brand-glow);
+    border-color: rgba(249,115,22,0.45);
+    color: var(--brand);
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.stat-card {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.stat-label {
+    color: var(--text-3);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    color: var(--brand);
+    font-size: 1.65rem;
+    line-height: 1;
+}
+
+.compact-panel { padding: 16px; }
+.compact-panel h2 { font-size: 1rem; margin: 0 0 5px; }
+.btn-compact { font-size: 0.76rem; padding: 5px 8px; }
+
+.inline-form {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(110px, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.inline-form .input-field { margin: 0; }
+.form-grid { display: grid; gap: 10px; }
+.form-grid.two-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* ── Modal and Chat Sizing ─────────────────── */
+.chat-dialog { height: min(680px, calc(100vh - 32px)); }
+.chat-modal-body { min-height: 0; overflow: hidden; }
+.chat-modal-body .chat-messages-box { min-height: 120px; }
+
+@media (max-width: 760px) {
+    .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .inline-form { grid-template-columns: 1fr 1fr; }
+    .inline-form .btn { grid-column: 1 / -1; }
+
+    .compact-order-card > div:last-child > div:last-child {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 520px) {
+    .page { padding: 18px 12px 44px; }
+    .dashboard-heading { margin-bottom: 14px; }
+    .dashboard-heading h1 { font-size: 1.25rem; }
+    .dashboard-stats { grid-template-columns: 1fr; }
+    .tab-nav { gap: 5px; }
+    .tab-btn { padding: 6px 8px; font-size: 0.76rem; }
+    .form-grid.two-columns,
+    .inline-form { grid-template-columns: 1fr; }
+    .inline-form .btn { grid-column: auto; }
+    .chat-dialog { height: calc(100vh - 20px); }
+    .chat-modal-body .chat-messages-box { min-height: 100px; }
+    .chat-modal-body #chat-composer { flex-wrap: wrap; }
+    .chat-modal-body #chat-composer .input-field { flex: 1 1 180px; }
+}
