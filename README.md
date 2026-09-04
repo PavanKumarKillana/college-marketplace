@@ -14,7 +14,7 @@ The project was built around the Amrita campus use case, but the marketplace mod
 
 ### For Students / Buyers
 
-- Register and login
+- Register and login (via College Email or Username)
 - Manage basic profile information
 - Select academic year and hostel
 - Browse products
@@ -63,7 +63,7 @@ Seller features include:
 
 ### For Administrators
 
-The admin dashboard provides centralized marketplace management.
+The admin dashboard provides centralized marketplace management through a clean, tabbed interface.
 
 Admins can:
 
@@ -438,13 +438,32 @@ Authentication uses:
 
 Passwords are stored as secure bcrypt hashes rather than plain text.
 
-The system supports:
+The system supports unique **Username** or **College Email** authentication, allowing students to log in quickly without typing their full email every time.
 
+The system supports:
 - Buyer
 - Seller
 - Admin
 
 Protected APIs verify authentication and authorization before performing sensitive operations.
+
+---
+
+# Real-Time Notifications & Polling
+
+To accommodate busy college students without relying on heavy WebSockets or complex Service Worker installations, SnackDen implements a hybrid notification system:
+
+### 1. In-App Silent Polling
+When the application is open:
+- **Order Polling:** The seller and buyer dashboards silently poll the backend every 30 seconds.
+- **Chat Polling:** When a chat modal is open, it polls every 5 seconds for instant negotiation and messaging.
+- **Visual Alerts:** Users instantly receive non-intrusive toast notifications (e.g., `🔔 New order received!`) when state changes.
+
+### 2. Offline Email Push Notifications
+When the application is closed:
+- **Order Alerts:** Sellers receive instant email notifications containing the buyer's name, total amount, and a deep link directly to the order dashboard.
+- **Chat Alerts:** Buyers and Sellers receive email notifications showing the exact message text and a "Reply Now" deep link to continue the negotiation.
+- Because college students actively check their email on their phones, this mimics a native push notification without requiring a standalone mobile app.
 
 ---
 
