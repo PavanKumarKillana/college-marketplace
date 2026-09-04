@@ -21,27 +21,29 @@
 
     <span id="role-label" class="navbar-role" style="display:none;"></span>
 
-    <a href="index.html"   class="nav-link">🏠 Home</a>
-    <a href="orders.html"  class="nav-link">📦 My Orders</a>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <a href="index.html"   class="nav-link nav-link-active">Home</a>
+        <a href="orders.html"  class="nav-link">My Orders</a>
 
-    <a id="seller-link" href="seller.html" class="nav-link" style="display:none;">
-        🏪 My Shop
-    </a>
+        <a id="seller-link" href="seller.html" class="nav-link" style="display:none;">
+            My Shop
+        </a>
 
-    <button id="become-seller-btn" class="nav-btn nav-btn-ghost" style="display:none;"
-            onclick="becomeSeller()">
-        + Sell on SnackDen
-    </button>
+        <button id="become-seller-btn" class="nav-btn nav-btn-ghost" style="display:none;"
+                onclick="becomeSeller()">
+            Sell on SnackDen
+        </button>
 
-    <a id="admin-link" href="admin.html" class="nav-link" style="display:none;">
-        ⚙️ Admin
-    </a>
+        <a id="admin-link" href="admin.html" class="nav-link" style="display:none;">
+            Admin
+        </a>
 
-    <button class="nav-cart-btn" onclick="viewCart()" id="cart-toggle-btn">
-        🛒 Cart <span class="cart-badge" id="cart-count">0</span>
-    </button>
+        <button class="nav-cart-btn" onclick="viewCart()" id="cart-toggle-btn">
+            Cart <span class="cart-badge" id="cart-count">0</span>
+        </button>
 
-    <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+        <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
+    </div>
 </nav>
 
 <!-- ── TOAST ──────────────────────────────── -->
@@ -50,11 +52,14 @@
 <!-- ── CART PANEL ─────────────────────────── -->
 <div class="page" style="padding-bottom:0;">
     <div id="cart-panel">
-        <h2>🛒 Your Cart</h2>
+        <h2 style="font-size:1.1rem; margin:0 0 10px 0; display:flex; justify-content:space-between; align-items:center;">
+            <span>Your Cart</span>
+            <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 8px;" onclick="viewCart()">Close</button>
+        </h2>
         <div id="cart-list"></div>
         <hr class="order-divider">
         <a class="btn btn-primary btn-full" href="checkout.html" style="margin-top:6px;">
-            Proceed to Checkout →
+            Proceed to Checkout
         </a>
     </div>
 </div>
@@ -65,14 +70,13 @@
     <!-- Missing hostel update banner for existing users -->
     <div id="hostel-update-banner" class="card" style="display:none; background:rgba(245,158,11,0.12); border:1px solid #f59e0b; margin-bottom:16px; padding:12px 18px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <span>📍 <strong>Complete Your Profile:</strong> Set your academic year, hostel building &amp; room number so sellers know where to deliver your orders.</span>
+            <span><strong>Complete Your Profile:</strong> Set your academic year, hostel building &amp; room number so sellers know where to deliver your orders.</span>
             <button class="btn btn-primary" style="font-size:0.8rem; padding:6px 12px;" onclick="promptSetHostel()">Complete Profile</button>
         </div>
     </div>
 
     <!-- Filter bar — compact inline -->
     <div class="filter-bar">
-        <span style="font-size:1rem;">🔍</span>
         <input type="text" id="search-box" placeholder="Search snacks, drinks…"
                onkeydown="if(event.key==='Enter') loadProducts()">
         <div class="filter-divider"></div>
@@ -80,13 +84,15 @@
             <option value="">All categories</option>
         </select>
         <select id="hostel-box" onchange="loadProducts()">
-            <option value="">📍 All Hostels</option>
+            <option value="">All Hostels</option>
         </select>
         <button class="filter-search-btn" onclick="loadProducts()">Search</button>
     </div>
 
     <!-- Products heading -->
-    <p class="section-heading">🔥 Available Now</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; margin-top:20px;">
+        <h2 style="font-size:1.2rem; margin:0; color:var(--text-1);">Available Now</h2>
+    </div>
 
     <!-- Grid -->
     <div id="products-container" class="grid"></div>
@@ -98,7 +104,7 @@
     <div class="modal-dialog">
         <div class="modal-header">
             <h3 id="product-detail-title">Product Details</h3>
-            <button onclick="closeProductDetailModal()" class="modal-close-btn">✖</button>
+            <button onclick="closeProductDetailModal()" class="modal-close-btn" aria-label="Close modal">×</button>
         </div>
         <div id="product-detail-body" class="modal-body"></div>
     </div>

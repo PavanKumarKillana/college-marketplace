@@ -52,6 +52,52 @@ async function sendOtpEmail(toEmail, otpCode) {
     }
 }
 
+async function sendOrderNotificationEmail(toEmail, orderId, buyerName, totalAmount, appUrl = "http://localhost:3000") {
+    const transporter = createTransporter();
+    const fromAddress = process.env.SMTP_FROM || `"SnackDen Orders" <noreply@snackden.duckdns.org>`;
+    const subject = `📦 New Order #${orderId} from ${buyerName}`;
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 500px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h2 style="color: #f59e0b;">🎉 You have a new order!</h2>
+            <p><strong>${buyerName}</strong> just placed Order <strong>#${orderId}</strong> for <strong>₹${totalAmount}</strong>.</p>
+            <a href="${appUrl}/seller.html" style="display:inline-block; margin-top:15px; padding:10px 20px; background:#6366f1; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold;">View Order Details</a>
+        </div>
+    `;
+
+    if (transporter) {
+        try {
+            await transporter.sendMail({ from: fromAddress, to: toEmail, subject, html: htmlContent });
+        } catch (err) { console.error("[Mailer] Order email err:", err.message); }
+    } else {
+        console.log(`[Mailer DEV MODE] Order email for Order #${orderId} would be sent to ${toEmail}`);
+    }
+}
+
+async function sendChatNotificationEmail(toEmail, orderId, senderName, message, appUrl = "http://localhost:3000") {
+    const transporter = createTransporter();
+    const fromAddress = process.env.SMTP_FROM || `"SnackDen Chat" <noreply@snackden.duckdns.org>`;
+    const subject = `💬 New Message regarding Order #${orderId}`;
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 500px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h3 style="color: #6366f1;">New message from ${senderName}</h3>
+            <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; margin: 15px 0; font-style: italic;">
+                "${message}"
+            </div>
+            <a href="${appUrl}/orders.html" style="display:inline-block; padding:10px 20px; background:#6366f1; color:#fff; text-decoration:none; border-radius:6px; font-weight:bold;">Reply Now</a>
+        </div>
+    `;
+
+    if (transporter) {
+        try {
+            await transporter.sendMail({ from: fromAddress, to: toEmail, subject, html: htmlContent });
+        } catch (err) { console.error("[Mailer] Chat email err:", err.message); }
+    } else {
+        console.log(`[Mailer DEV MODE] Chat notification for Order #${orderId} would be sent to ${toEmail}`);
+    }
+}
+
 module.exports = {
-    sendOtpEmail
+    sendOtpEmail,
+    sendOrderNotificationEmail,
+    sendChatNotificationEmail
 };

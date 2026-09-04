@@ -123,6 +123,17 @@ function postOrderMessage(req, res) {
             if (msgErr) {
                 return res.status(500).json({ success: false, message: "Failed to send message." });
             }
+
+            // Send Email Notification asynchronously
+            const { sendChatNotificationEmail } = require("../config/mailer");
+            const isBuyer = order.buyer_id === userId;
+            const recipientEmail = isBuyer ? order.seller_email : order.buyer_email;
+            const senderName = isBuyer ? (order.buyer_name || "Buyer") : (order.store_name || "Seller");
+            
+            if (recipientEmail) {
+                sendChatNotificationEmail(recipientEmail, orderId, senderName, message);
+            }
+
             res.json({ success: true, message: "Message sent successfully." });
         });
     });

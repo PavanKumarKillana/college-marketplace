@@ -228,26 +228,34 @@ function deleteProduct(id) {
     .catch(() => toast("Failed to delete product", "error"))
 }
 
-function loadOrders() {
+function loadOrders(silent = false) {
     fetch(API + "/api/orders/seller/list", { headers: authHeaders() })
         .then(r => r.json())
         .then(data => {
+            if (!Array.isArray(data)) return;
+            
+            // Check if there's a new order when silently polling
+            if (silent && data.length > globalSellerOrders.length) {
+                toast("🔔 New order received!", "success");
+            }
+            
+            globalSellerOrders = data
             const box = document.getElementById("seller-orders")
             const overviewBox = document.getElementById("overview-orders-preview")
             const statOrders = document.getElementById("stat-orders-count")
 
-            box.innerHTML = ""
-            if (overviewBox) overviewBox.innerHTML = ""
+            if (!silent) {
+                box.innerHTML = ""
+                if (overviewBox) overviewBox.innerHTML = ""
+            }
 
-            if (!Array.isArray(data) || data.length === 0) {
+            if (data.length === 0) {
                 const emptyHtml = `<div class="empty-state" style="padding:20px 0;"><p style="color:var(--text-3);">No incoming orders yet.</p></div>`
                 box.innerHTML = emptyHtml
                 if (overviewBox) overviewBox.innerHTML = emptyHtml
                 if (statOrders) statOrders.textContent = "0"
                 return
             }
-
-            globalSellerOrders = data
             if (statOrders) statOrders.textContent = String(data.length)
 
             data.forEach((order, index) => {
@@ -400,11 +408,21 @@ function openChatModal(orderId) {
     document.getElementById("chat-modal").style.display = "flex"
     document.getElementById("offer-input-fields").style.display = "none"
     loadChatMessages()
+
+    if (window.chatPollInterval) clearInterval(window.chatPollInterval)
+    window.chatPollInterval = setInterval(() => {
+        if (document.getElementById("chat-modal").style.display !== "none") {
+            loadChatMessages(true)
+        } else {
+            clearInterval(window.chatPollInterval)
+        }
+    }, 5000)
 }
 
 function closeChatModal() {
     document.getElementById("chat-modal").style.display = "none"
     currentChatOrderId = null
+    if (window.chatPollInterval) clearInterval(window.chatPollInterval)
 }
 
 function toggleOfferInputs() {
@@ -412,14 +430,16 @@ function toggleOfferInputs() {
     box.style.display = box.style.display === "none" ? "block" : "none"
 }
 
-function loadChatMessages() {
+function loadChatMessages(silent = false) {
     if (!currentChatOrderId) return
     const msgBox = document.getElementById("chat-messages-box")
     const contextBox = document.getElementById("chat-context-box")
     const sellerOfferBar = document.getElementById("seller-offer-bar")
     const composer = document.getElementById("chat-composer")
 
-    msgBox.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">Loading conversation…</p>`
+    if (!silent) {
+        msgBox.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">Loading conversation…</p>`
+    }
 
     fetch(API + "/api/orders/" + currentChatOrderId + "/messages", {
         headers: authHeaders()
@@ -660,4 +680,13 @@ document.addEventListener("DOMContentLoaded", () => {
     loadShop()
     loadMyProducts()
     loadOrders()
+
+    // Poll for new orders every 30 seconds
+    setInterval(() => {
+        const secOrders = document.getElementById("seller-sec-orders")
+        const secOverview = document.getElementById("seller-sec-overview")
+        if (secOrders && secOverview && (secOrders.style.display !== "none" || secOverview.style.display !== "none")) {
+            loadOrders(true) // Silent check
+        }
+    }, 30000)
 })

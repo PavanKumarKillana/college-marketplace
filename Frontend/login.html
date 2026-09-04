@@ -24,7 +24,7 @@
         <!-- LOGIN FORM -->
         <div id="login-form">
             <h3>Welcome back</h3>
-            <input type="email" id="login-email" placeholder="College email" class="input-field">
+            <input type="text" id="login-email" placeholder="Email or Username" class="input-field">
             <div class="password-wrapper" style="margin-bottom:6px;">
                 <input type="password" id="login-password" placeholder="Password" class="input-field" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') loginUser()">
                 <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('login-password', this)">Show</button>
@@ -96,6 +96,7 @@
             <h3>Join SnackDen</h3>
             <input type="text"     id="reg-name"     placeholder="Your name"              class="input-field">
             <input type="email"    id="reg-email"    placeholder="College email"           class="input-field">
+            <input type="text"     id="reg-username" placeholder="Username (optional, for quick login)" class="input-field">
             <div class="password-wrapper" style="margin-bottom:12px;">
                 <input type="password" id="reg-password" placeholder="Password" class="input-field" style="margin-bottom:0;">
                 <button type="button" class="password-toggle-btn" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('reg-password', this)">Show</button>

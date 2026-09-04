@@ -26,6 +26,7 @@ function sendLoginResponse(res,user){
 
 async function registerUser (req,res){
     const email=req.body.email
+    const username=req.body.username || null
     const password=req.body.password
     const name=req.body.name || null
     const roomNumber=req.body.room_number || null
@@ -38,11 +39,11 @@ async function registerUser (req,res){
         })
     }
     const hashedPassword=await bcrypt.hash(password,10)
-    userModel.createUser(email,hashedPassword,name,"buyer",roomNumber,hostelId,year,(err,result)=>{
+    userModel.createUser(email,username,hashedPassword,name,"buyer",roomNumber,hostelId,year,(err,result)=>{
         if(err){
             return res.json({
                 success:false,
-                message:"user not created"
+                message: err.code === 'ER_DUP_ENTRY' ? "Email or username already exists" : "User not created"
             })
         }
         res.json({
@@ -53,13 +54,13 @@ async function registerUser (req,res){
 }
 
 async function loginUser(req,res){
-    const email=req.body.email
+    const identifier=req.body.email // This will now hold either email or username from frontend
     const password=req.body.password
     const secret=getJwtSecret()
     if(!secret){
         return res.json({success:false,message:"JWT_SECRET is missing in .env"})
     }
-    userModel.getUserByEmail(email,async(err,result)=>{
+    userModel.getUserByEmailOrUsername(identifier,async(err,result)=>{
         if(err){
             return res.json({success:false,message:"database error"})
         }

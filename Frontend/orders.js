@@ -5,30 +5,56 @@ requireLogin()
 let globalOrders = []
 let currentChatOrderId = null
 
-function loadBuyerOrders() {
+function loadBuyerOrders(silent = false) {
     const box = document.getElementById("orders")
-    box.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><p>Loading your orders…</p></div>`
+    
+    if (!silent) {
+        box.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><p>Loading your orders…</p></div>`
+    }
 
     fetch(API + "/api/orders", {
         headers: authHeaders()
     })
     .then(r => r.json())
     .then(data => {
-        if (!Array.isArray(data) || data.length === 0) {
-            box.innerHTML = `
-                <div class="empty-state">
-                    <p style="font-size:1rem; font-weight:600; color:var(--text-2); margin-bottom:8px;">No orders found</p>
-                    <p><a href="index.html" class="btn btn-primary" style="font-size:0.82rem;">Browse Marketplace</a></p>
-                </div>
-            `
+        if (!Array.isArray(data)) return;
+        
+        if (silent && data.length > globalOrders.length) {
+            toast("🔔 Your order has been updated!", "success");
+        }
+        
+        if (data.length === 0) {
+            if (!silent) {
+                box.innerHTML = `
+                    <div class="empty-state">
+                        <p style="font-size:1rem; font-weight:600; color:var(--text-2); margin-bottom:8px;">No orders found</p>
+                        <p><a href="index.html" class="btn btn-primary" style="font-size:0.82rem;">Browse Marketplace</a></p>
+                    </div>
+                `
+            }
+            globalOrders = [];
             return
+        }
+
+        // Check if any order status changed during silent poll
+        if (silent && globalOrders.length > 0) {
+            let statusChanged = false;
+            data.forEach(newOrder => {
+                const oldOrder = globalOrders.find(o => o.id === newOrder.id);
+                if (oldOrder && (oldOrder.status !== newOrder.status || oldOrder.payment_status !== newOrder.payment_status)) {
+                    statusChanged = true;
+                }
+            });
+            if (statusChanged) {
+                toast("🔔 An order status was updated!", "success");
+            }
         }
 
         globalOrders = data
         box.innerHTML = data.map(order => renderCompactOrderCard(order)).join("")
     })
     .catch(() => {
-        box.innerHTML = `<div class="empty-state"><p style="color:var(--red);">Could not load orders. Please refresh the page.</p></div>`
+        if (!silent) box.innerHTML = `<div class="empty-state"><p style="color:var(--red);">Could not load orders. Please refresh the page.</p></div>`
     })
 }
 
@@ -296,11 +322,21 @@ function openChatModal(orderId) {
     document.getElementById("chat-modal").style.display = "flex"
     document.getElementById("offer-input-fields").style.display = "none"
     loadChatMessages()
+
+    if (window.chatPollInterval) clearInterval(window.chatPollInterval)
+    window.chatPollInterval = setInterval(() => {
+        if (document.getElementById("chat-modal").style.display !== "none") {
+            loadChatMessages(true)
+        } else {
+            clearInterval(window.chatPollInterval)
+        }
+    }, 5000)
 }
 
 function closeChatModal() {
     document.getElementById("chat-modal").style.display = "none"
     currentChatOrderId = null
+    if (window.chatPollInterval) clearInterval(window.chatPollInterval)
 }
 
 function toggleOfferInputs() {
@@ -308,14 +344,16 @@ function toggleOfferInputs() {
     box.style.display = box.style.display === "none" ? "block" : "none"
 }
 
-function loadChatMessages() {
+function loadChatMessages(silent = false) {
     if (!currentChatOrderId) return
     const msgBox = document.getElementById("chat-messages-box")
     const contextBox = document.getElementById("chat-context-box")
     const sellerOfferBar = document.getElementById("seller-offer-bar")
     const composer = document.getElementById("chat-composer")
 
-    msgBox.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">Loading conversation…</p>`
+    if (!silent) {
+        msgBox.innerHTML = `<p style="text-align:center; color:var(--text-3); font-size:0.8rem;">Loading conversation…</p>`
+    }
 
     fetch(API + "/api/orders/" + currentChatOrderId + "/messages", {
         headers: authHeaders()
@@ -506,4 +544,13 @@ function rejectCustomOffer(offerId) {
     })
 }
 
-document.addEventListener("DOMContentLoaded", loadBuyerOrders)
+document.addEventListener("DOMContentLoaded", () => {
+    loadBuyerOrders()
+
+    // Poll for order updates every 30 seconds
+    setInterval(() => {
+        if (document.getElementById("orders")) {
+            loadBuyerOrders(true) // Silent check
+        }
+    }, 30000)
+})

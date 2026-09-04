@@ -33,12 +33,20 @@ db.connect((err)=>{
         }
     })
 
-    // Student academic year — completely separate from hostel/building
     db.query("SHOW COLUMNS FROM users LIKE 'year'", (err, res) => {
         if (!err && (!res || res.length === 0)) {
             db.query("ALTER TABLE users ADD COLUMN year VARCHAR(20) NULL", (e) => {
                 if (e) console.error("Error adding year to users:", e.message)
                 else console.log("Added year column to users.")
+            })
+        }
+    })
+
+    db.query("SHOW COLUMNS FROM users LIKE 'username'", (err, res) => {
+        if (!err && (!res || res.length === 0)) {
+            db.query("ALTER TABLE users ADD COLUMN username VARCHAR(50) NULL UNIQUE", (e) => {
+                if (e) console.error("Error adding username to users:", e.message)
+                else console.log("Added username column to users.")
             })
         }
     })

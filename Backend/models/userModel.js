@@ -1,9 +1,9 @@
 const db=require("../config/db")
 
-function createUser(email,hashedPassword,name,role,roomNumber,hostelId,year,callback){
+function createUser(email,username,hashedPassword,name,role,roomNumber,hostelId,year,callback){
     db.query(
-        "INSERT INTO users(email,password,name,role,room_number,hostel_id,year)VALUES(?,?,?,?,?,?,?)",
-        [email,hashedPassword,name,role,roomNumber||null,hostelId||null,year||null],
+        "INSERT INTO users(email,username,password,name,role,room_number,hostel_id,year)VALUES(?,?,?,?,?,?,?,?)",
+        [email,username||null,hashedPassword,name,role,roomNumber||null,hostelId||null,year||null],
         (err,result)=>{
             if(err) callback(err,null)
             else callback(null,result)
@@ -13,6 +13,13 @@ function createUser(email,hashedPassword,name,role,roomNumber,hostelId,year,call
 
 function getUserByEmail(email,callback){
     db.query("SELECT * FROM users WHERE email=?",[email],(err,result)=>{
+        if(err) callback(err,null)
+        else callback(null,result)
+    })
+}
+
+function getUserByEmailOrUsername(identifier,callback){
+    db.query("SELECT * FROM users WHERE email=? OR username=?",[identifier,identifier],(err,result)=>{
         if(err) callback(err,null)
         else callback(null,result)
     })
@@ -75,6 +82,7 @@ function setUserBlockStatus(id,isBlocked,callback){
 module.exports={
     createUser,
     getUserByEmail,
+    getUserByEmailOrUsername,
     getUserById,
     updateUserHostel,
     updateUserRole,

@@ -80,6 +80,7 @@ function loadRegistrationHostels() {
 function registerUser() {
     const name        = document.getElementById("reg-name").value.trim()
     const email       = document.getElementById("reg-email").value.trim()
+    const username    = document.getElementById("reg-username") ? document.getElementById("reg-username").value.trim() : ""
     const password    = document.getElementById("reg-password").value
     const room_number = document.getElementById("reg-room").value.trim()
     const hostel_id   = document.getElementById("reg-hostel") ? document.getElementById("reg-hostel").value : ""
@@ -90,7 +91,7 @@ function registerUser() {
     fetch(API + "/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, room_number, hostel_id, year })
+        body: JSON.stringify({ name, email, username, password, room_number, hostel_id, year })
     })
     .then(r => r.json())
     .then(data => {

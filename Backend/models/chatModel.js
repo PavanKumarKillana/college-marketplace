@@ -6,12 +6,14 @@ function getOrderDetailsForChat(orderId, callback) {
                o.fulfillment_type, o.status AS order_status, o.payment_status,
                o.grand_total, o.items_total, o.delivery_charge,
                s.store_name,
-               bu.name AS buyer_name, bu.year AS buyer_year,
+               bu.name AS buyer_name, bu.year AS buyer_year, bu.email AS buyer_email,
                bh.name AS buyer_hostel_name, bu.room_number AS buyer_room,
-               sh.name AS seller_hostel_name, s.room_number AS seller_room
+               sh.name AS seller_hostel_name, s.room_number AS seller_room,
+               su.email AS seller_email
         FROM orders o
         LEFT JOIN sellers s ON o.seller_id = s.id
         LEFT JOIN users bu ON o.buyer_id = bu.id
+        LEFT JOIN users su ON s.user_id = su.id
         LEFT JOIN hostels bh ON bu.hostel_id = bh.id
         LEFT JOIN hostels sh ON s.hostel_id = sh.id
         WHERE o.id = ?

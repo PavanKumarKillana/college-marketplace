@@ -41,6 +41,7 @@ function placeOrder(req,res){
         }
         const checkoutId=Date.now()+"-"+req.userId
         const sellerIds=Object.keys(groups)
+        const createdOrderIds = []
         db.beginTransaction((tErr)=>{
             if(tErr){
                 return res.json({success:false,message:"could not start order"})
@@ -59,6 +60,24 @@ function placeOrder(req,res){
                                     res.json({success:false,message:"order failed"})
                                 })
                             }
+                            
+                            // Send emails asynchronously
+                            const { sendOrderNotificationEmail } = require("../config/mailer")
+                            createdOrderIds.forEach(id => {
+                                db.query(`
+                                    SELECT o.id, o.grand_total, u.email as seller_email, b.name as buyer_name 
+                                    FROM orders o
+                                    JOIN sellers s ON o.seller_id = s.id
+                                    JOIN users u ON s.user_id = u.id
+                                    JOIN users b ON o.buyer_id = b.id
+                                    WHERE o.id = ?
+                                `, [id], (err, queryRes) => {
+                                    if(!err && queryRes.length > 0) {
+                                        sendOrderNotificationEmail(queryRes[0].seller_email, queryRes[0].id, queryRes[0].buyer_name || 'A Student', queryRes[0].grand_total)
+                                    }
+                                })
+                            })
+
                             res.json({
                                 success:true,
                                 message:"Order placed. Pay each seller with UPI.",
@@ -89,6 +108,7 @@ function placeOrder(req,res){
                             res.json({success:false,message:"order failed. Run schema.sql"})
                         })
                     }
+                    createdOrderIds.push(orderResult.insertId)
                     insertItems(orderResult.insertId,lines,0,index)
                 })
             }

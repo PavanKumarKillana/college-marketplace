@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard — SnackDen</title>
+    <title>Admin Control Center — SnackDen</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,95 +13,110 @@
         <img src="amrita_logo.png" alt="Amrita">
         <div>
             <span class="brand-name">SnackDen</span>
-            <span class="brand-sub">Admin Dashboard</span>
+            <span class="brand-sub">Admin Control Center</span>
         </div>
     </a>
     <div style="display:flex; align-items:center; gap:12px;">
-        <a href="index.html" class="nav-link">Marketplace</a>
+        <a href="index.html" class="nav-link">Home</a>
         <button class="nav-btn nav-btn-danger" onclick="logout()">Logout</button>
     </div>
 </nav>
 
 <div id="toast-container"></div>
 
-<main class="page">
-    <header class="dashboard-heading">
-        <div>
-            <h1>Admin Dashboard</h1>
-            <p>Review marketplace activity and manage campus settings.</p>
+<div class="page">
+    <div style="margin-bottom:20px;">
+        <h2 style="font-size:1.3rem; margin:0 0 12px 0; color:var(--text-1);">Admin Dashboard</h2>
+        <div class="tab-nav" style="display:flex; gap:8px; border-bottom:1px solid var(--border); padding-bottom:8px; flex-wrap:wrap;">
+            <button class="tab-btn active" id="admin-tab-overview" onclick="switchAdminTab('overview')">Overview</button>
+            <button class="tab-btn" id="admin-tab-users" onclick="switchAdminTab('users')">Users &amp; Sellers</button>
+            <button class="tab-btn" id="admin-tab-products" onclick="switchAdminTab('products')">Products</button>
+            <button class="tab-btn" id="admin-tab-orders" onclick="switchAdminTab('orders')">Orders</button>
+            <button class="tab-btn" id="admin-tab-reports" onclick="switchAdminTab('reports')">Reports</button>
+            <button class="tab-btn" id="admin-tab-hostels" onclick="switchAdminTab('hostels')">Hostels</button>
         </div>
-    </header>
+    </div>
 
-    <nav class="tab-nav" aria-label="Admin dashboard sections">
-        <button class="tab-btn active" id="admin-tab-overview" onclick="switchAdminTab('overview')">Overview</button>
-        <button class="tab-btn" id="admin-tab-users" onclick="switchAdminTab('users')">Users</button>
-        <button class="tab-btn" id="admin-tab-products" onclick="switchAdminTab('products')">Products</button>
-        <button class="tab-btn" id="admin-tab-orders" onclick="switchAdminTab('orders')">Orders</button>
-        <button class="tab-btn" id="admin-tab-reports" onclick="switchAdminTab('reports')">Reports</button>
-        <button class="tab-btn" id="admin-tab-hostels" onclick="switchAdminTab('hostels')">Hostels</button>
-    </nav>
-
-    <section id="admin-sec-overview" class="admin-section">
-        <div class="dashboard-stats">
-            <article class="card stat-card">
-                <span class="stat-label">Users</span>
-                <strong id="admin-stat-users" class="stat-value">—</strong>
-                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('users')">Manage users</button>
-            </article>
-            <article class="card stat-card">
-                <span class="stat-label">Products</span>
-                <strong id="admin-stat-products" class="stat-value">—</strong>
-                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('products')">Review products</button>
-            </article>
-            <article class="card stat-card">
-                <span class="stat-label">Orders</span>
-                <strong id="admin-stat-orders" class="stat-value">—</strong>
-                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('orders')">View orders</button>
-            </article>
-            <article class="card stat-card">
-                <span class="stat-label">Open reports</span>
-                <strong id="admin-stat-reports" class="stat-value">—</strong>
-                <button class="btn btn-secondary btn-compact" onclick="switchAdminTab('reports')">Review reports</button>
-            </article>
-        </div>
-        <section class="card compact-panel">
-            <h2>Quick actions</h2>
-            <p>Use a section above to manage users, listings, order payment proof, reports, and hostel buildings. Details stay in their own section to keep this overview simple.</p>
-        </section>
-    </section>
-
-    <section id="admin-sec-users" class="admin-section" hidden>
-        <div class="section-header"><div><h2>Users</h2><p>Update locations, block accounts, and issue seller strikes.</p></div></div>
-        <div id="users" class="admin-list"><p>Loading users…</p></div>
-    </section>
-
-    <section id="admin-sec-products" class="admin-section" hidden>
-        <div class="section-header"><div><h2>Products</h2><p>Hide, restore, or permanently remove listings.</p></div></div>
-        <div id="products" class="admin-list"><p>Loading products…</p></div>
-    </section>
-
-    <section id="admin-sec-orders" class="admin-section" hidden>
-        <div class="section-header"><div><h2>Orders</h2><p>Review order and payment status.</p></div></div>
-        <div id="orders" class="admin-list"><p>Loading orders…</p></div>
-    </section>
-
-    <section id="admin-sec-reports" class="admin-section" hidden>
-        <div class="section-header"><div><h2>Moderation reports</h2><p>Resolve reports or take listing and seller actions.</p></div></div>
-        <div id="reports" class="admin-list"><p>Loading reports…</p></div>
-    </section>
-
-    <section id="admin-sec-hostels" class="admin-section" hidden>
-        <div class="section-header"><div><h2>Hostels and buildings</h2><p>Create or enable campus building options.</p></div></div>
-        <div class="card compact-panel" style="margin-bottom:14px;">
-            <div class="inline-form">
-                <input type="text" id="new-hostel-name" placeholder="Hostel name" class="input-field">
-                <input type="text" id="new-hostel-code" placeholder="Code" class="input-field">
-                <button class="btn btn-primary" onclick="addHostel()">Add hostel</button>
+    <!-- SECTION: OVERVIEW -->
+    <div id="admin-sec-overview" class="seller-section">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:24px;">
+            <div class="card" style="padding:16px;">
+                <div style="font-size:0.8rem; color:var(--text-3); font-weight:600; text-transform:uppercase;">Total Users</div>
+                <div id="admin-stat-users" style="font-size:1.8rem; font-weight:700; color:var(--brand); margin:4px 0 8px 0;">0</div>
+                <button class="btn btn-secondary" style="font-size:0.78rem; padding:4px 10px; width:100%;" onclick="switchAdminTab('users')">Manage Users</button>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:0.8rem; color:var(--text-3); font-weight:600; text-transform:uppercase;">Products in Catalog</div>
+                <div id="admin-stat-products" style="font-size:1.8rem; font-weight:700; color:var(--brand); margin:4px 0 8px 0;">0</div>
+                <button class="btn btn-secondary" style="font-size:0.78rem; padding:4px 10px; width:100%;" onclick="switchAdminTab('products')">Manage Products</button>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:0.8rem; color:var(--text-3); font-weight:600; text-transform:uppercase;">Total Orders</div>
+                <div id="admin-stat-orders" style="font-size:1.8rem; font-weight:700; color:var(--brand); margin:4px 0 8px 0;">0</div>
+                <button class="btn btn-secondary" style="font-size:0.78rem; padding:4px 10px; width:100%;" onclick="switchAdminTab('orders')">View Orders</button>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:0.8rem; color:var(--text-3); font-weight:600; text-transform:uppercase;">Open Reports</div>
+                <div id="admin-stat-reports" style="font-size:1.8rem; font-weight:700; color:var(--red); margin:4px 0 8px 0;">0</div>
+                <button class="btn btn-secondary" style="font-size:0.78rem; padding:4px 10px; width:100%;" onclick="switchAdminTab('reports')">Review Reports</button>
             </div>
         </div>
-        <div id="hostels-list" class="admin-list"><p>Loading hostels…</p></div>
-    </section>
-</main>
+    </div>
+
+    <!-- SECTION: USERS -->
+    <div id="admin-sec-users" class="seller-section" hidden>
+        <h3 style="font-size:1.1rem; margin-top:0; margin-bottom:14px;">User &amp; Seller Management</h3>
+        <div id="users">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Loading users…</p></div>
+        </div>
+    </div>
+
+    <!-- SECTION: PRODUCTS -->
+    <div id="admin-sec-products" class="seller-section" hidden>
+        <h3 style="font-size:1.1rem; margin-top:0; margin-bottom:14px;">Global Product Catalog</h3>
+        <div id="products">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Loading products…</p></div>
+        </div>
+    </div>
+
+    <!-- SECTION: ORDERS -->
+    <div id="admin-sec-orders" class="seller-section" hidden>
+        <h3 style="font-size:1.1rem; margin-top:0; margin-bottom:14px;">Platform Orders</h3>
+        <div id="orders">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Loading orders…</p></div>
+        </div>
+    </div>
+
+    <!-- SECTION: REPORTS -->
+    <div id="admin-sec-reports" class="seller-section" hidden>
+        <h3 style="font-size:1.1rem; margin-top:0; margin-bottom:14px;">Moderation Queue</h3>
+        <div id="reports">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Loading reports…</p></div>
+        </div>
+    </div>
+
+    <!-- SECTION: HOSTELS -->
+    <div id="admin-sec-hostels" class="seller-section" hidden>
+        <div class="card" style="margin-bottom:16px;">
+            <h3 style="font-size:1.1rem; margin-top:0; margin-bottom:14px;">Hostel &amp; Location Management</h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                <div style="flex:2; min-width:200px;">
+                    <span class="input-label">Hostel Name (e.g. Nachiketas Hostel)</span>
+                    <input type="text" id="new-hostel-name" class="input-field" style="margin-bottom:0;">
+                </div>
+                <div style="flex:1; min-width:100px;">
+                    <span class="input-label">Code (e.g. NCH)</span>
+                    <input type="text" id="new-hostel-code" class="input-field" style="margin-bottom:0;">
+                </div>
+                <button class="btn btn-primary" style="padding:10px 20px;" onclick="addHostel()">Add Hostel</button>
+            </div>
+        </div>
+        <div id="hostels-list">
+            <div class="spinner-wrap"><div class="spinner"></div><p>Loading hostels…</p></div>
+        </div>
+    </div>
+
+</div>
 
 <script src="api.js"></script>
 <script src="admin.js"></script>
