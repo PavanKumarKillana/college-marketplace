@@ -60,6 +60,15 @@ db.connect((err)=>{
         }
     })
 
+    db.query("SHOW COLUMNS FROM products LIKE 'created_at'", (err, res) => {
+        if (!err && (!res || res.length === 0)) {
+            db.query("ALTER TABLE products ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP", (e) => {
+                if (e) console.error("Error adding created_at to products:", e.message)
+                else console.log("Added created_at column to products.")
+            })
+        }
+    })
+
     // ── Static reference tables ──────────────────────────────────────────────
 
     db.query(`CREATE TABLE IF NOT EXISTS password_resets (

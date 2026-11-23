@@ -137,6 +137,8 @@ function productCard(p) {
     const deliveryChargeHtml = p.delivery_available && Number(p.delivery_charge) > 0
         ? `<p class="product-meta">+ ₹${p.delivery_charge} delivery</p>` : ""
 
+    const dateHtml = p.created_at ? `<div style="font-size:0.73rem; color:var(--text-3); margin-top:2px;">📅 Listed ${formatDate(p.created_at)}</div>` : ""
+
     return `<div class="product-card">
         <div class="product-image-frame" onclick="openProductDetailModal(${p.id})">${imgHtml}</div>
         <div class="product-body">
@@ -145,6 +147,7 @@ function productCard(p) {
             <div class="rating-row">${starRating(p.avg_rating)}</div>
             <p class="product-meta">🏪 ${escapeHtml(shop)} | <strong style="color:var(--brand);">${escapeHtml(hostel)}</strong></p>
             ${deliveryChargeHtml}
+            ${dateHtml}
             <div class="badge-row">${stockBadge} ${delBadge}</div>
             <div class="product-actions" style="margin-top:10px; display:flex; gap:6px;">
                 <button class="btn btn-primary" style="flex:1;" onclick="addtoCart(${p.id})" ${inStock ? "" : "disabled"}>
@@ -189,6 +192,7 @@ function openProductDetailModal(productId) {
         <p style="font-size:0.85rem; color:var(--text-2); margin-bottom:8px;">
             🏪 Store: <strong>${escapeHtml(p.store_name || "Campus Seller")}</strong><br>
             📍 Hostel Building: <strong style="color:var(--brand);">${escapeHtml(p.hostel_name || "Campus Hostel")}</strong>
+            ${p.created_at ? `<br><span style="font-size:0.78rem; color:var(--text-3);">📅 Listed: ${formatDateTime(p.created_at)}</span>` : ""}
         </p>
         <p style="font-size:0.85rem; color:var(--text-1); margin-bottom:12px; background:var(--bg-3); padding:10px; border-radius:var(--radius-sm);">
             ${escapeHtml(p.description || "No description provided.")}

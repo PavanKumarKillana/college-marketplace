@@ -70,6 +70,7 @@ function loadUsers() {
                         Hostel: <strong>${hostelDisp}</strong> |
                         Room: <strong>${escapeHtml(u.room_number || "-")}</strong><br>
                         Status: <strong style="color:${isBlocked ? 'var(--red)' : 'var(--green)'}">${isBlocked ? 'Suspended' : 'Active'}</strong>
+                        ${u.created_at ? ` | Registered: <span style="color:var(--text-2);">${formatDate(u.created_at)}</span>` : ''}
                         ${
                             isSeller
                             ? ` | Shop: <strong>${escapeHtml(u.store_name || "Active")}</strong> | Strikes: <strong style="color:${strikeCount >= 3 ? 'var(--red)' : strikeCount > 0 ? '#f59e0b' : 'var(--green)'};">${strikeCount}/3</strong>`
@@ -257,6 +258,7 @@ function loadProducts() {
 
                         <div style="font-size:0.82rem; color:var(--text-2);">
                             Price: <strong>₹${Number(p.price || 0).toFixed(2)}</strong> | Stock: <strong>${p.stock ?? 0}</strong> | Category: ${escapeHtml(p.category || "-")}
+                            ${p.created_at ? ` | Listed: <strong>${formatDate(p.created_at)}</strong>` : ''}
                         </div>
                     </div>
 
@@ -356,6 +358,7 @@ function loadOrders() {
             <div class="card" style="margin-bottom:10px;">
                 <strong>Order #${o.id}</strong> | Store: <strong>${escapeHtml(o.store_name || "-")}</strong> | Buyer: ${escapeHtml(o.buyer_email || "-")}<br>
                 Amount: <strong>₹${Number(o.grand_total || 0).toFixed(2)}</strong> | Payment: <strong>${escapeHtml(o.payment_status || "-")}</strong> | Status: <strong>${escapeHtml(o.status || "-")}</strong>
+                ${o.created_at ? ` | Placed: <strong>${formatDateTime(o.created_at)}</strong>` : ''}
                 ${o.payment_utr ? `<br>UPI/UTR: <strong>${escapeHtml(o.payment_utr)}</strong>` : '<br>UPI/UTR: <em>Not provided (optional)</em>'}
                 ${
                     o.payment_screenshot_url

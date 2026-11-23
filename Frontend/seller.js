@@ -142,7 +142,8 @@ function loadMyProducts() {
                             <span class="product-category">${escapeHtml(p.category || "General")}</span>
                             <div class="card-title">${escapeHtml(p.name)}</div>
                             <div class="card-price">₹${p.price}</div>
-                            <div style="font-size:0.78rem; color:var(--text-2); margin-bottom:8px;">Stock: ${p.stock} units</div>
+                            <div style="font-size:0.78rem; color:var(--text-2); margin-bottom:4px;">Stock: ${p.stock} units</div>
+                            ${p.created_at ? `<div style="font-size:0.73rem; color:var(--text-3); margin-bottom:8px;">📅 Added ${formatDate(p.created_at)}</div>` : ''}
 
                             <div style="display:flex; gap:6px; margin-top:auto;">
                                 <button class="btn btn-secondary" style="flex:1; font-size:0.78rem; padding:4px 8px;" onclick="editProduct(${p.id})">Edit</button>
@@ -268,6 +269,7 @@ function loadOrders(silent = false) {
                         <div class="compact-order-header">
                             <div>
                                 <strong style="font-size:0.95rem; color:var(--text-1);">Order #${order.id} — ${escapeHtml(order.buyer_name || order.buyer_email || 'Buyer')}</strong>
+                                ${order.created_at ? `<div style="font-size:0.75rem; color:var(--text-3); margin-top:2px;">🕒 ${formatDateTime(order.created_at)}</div>` : ''}
                             </div>
                             <span class="order-total">₹${order.grand_total}</span>
                         </div>
@@ -372,6 +374,7 @@ function openOrderDetailModal(orderId) {
                 <div>
                     <strong>Buyer:</strong> ${escapeHtml(order.buyer_name || order.buyer_email || 'Buyer')}<br>
                     <span style="font-size:0.78rem; color:var(--text-3);">${order.fulfillment_type === 'delivery' ? 'Delivery Order' : 'Pickup Order'}</span>
+                    ${order.created_at ? `<div style="font-size:0.75rem; color:var(--text-3); margin-top:3px;">Placed on: <strong>${formatDateTime(order.created_at)}</strong></div>` : ''}
                 </div>
                 <div style="text-align:right;">
                     <span class="badge badge-brand">₹${order.grand_total}</span>
@@ -509,10 +512,11 @@ function loadChatMessages(silent = false) {
         messages.forEach(m => {
             const isMe = Number(m.sender_id) === currentUserId
             const roleBadge = m.sender_role ? `<span style="font-weight:normal; opacity:0.75;">(${m.sender_role})</span>` : ""
+            const timeHtml = m.created_at ? `<span style="font-size:0.68rem; opacity:0.65; margin-left:6px;">${formatTime(m.created_at)}</span>` : ""
 
             html += `
                 <div class="chat-bubble ${isMe ? 'chat-bubble-me' : 'chat-bubble-them'}">
-                    <div class="chat-sender">${escapeHtml(m.sender_name || 'User')} ${roleBadge}</div>
+                    <div class="chat-sender">${escapeHtml(m.sender_name || 'User')} ${roleBadge} ${timeHtml}</div>
                     ${escapeHtml(m.message)}
                 </div>
             `

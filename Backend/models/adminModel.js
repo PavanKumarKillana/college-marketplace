@@ -2,7 +2,7 @@ const db=require("../config/db")
 
 function getAllUsers(callback){
     const query = `
-        SELECT u.id, u.email, u.name, u.role, u.room_number, u.is_blocked, u.hostel_id, u.year,
+        SELECT u.id, u.email, u.name, u.role, u.room_number, u.is_blocked, u.hostel_id, u.year, u.created_at,
                h.name AS hostel_name, h.code AS hostel_code,
                s.id AS seller_id, s.store_name,
                (SELECT COUNT(*) FROM seller_strikes WHERE seller_id = s.id) AS strike_count

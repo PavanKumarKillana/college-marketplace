@@ -93,3 +93,52 @@ function togglePasswordVisibility(inputId, btn) {
         btn.setAttribute("aria-pressed", isPassword ? "true" : "false");
     }
 }
+
+/* ── Date & Time formatting ────────────────────── */
+function formatDateTime(dateStr) {
+    if (!dateStr) return ""
+    try {
+        const d = new Date(dateStr)
+        if (isNaN(d.getTime())) return ""
+        return d.toLocaleString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        })
+    } catch {
+        return ""
+    }
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return ""
+    try {
+        const d = new Date(dateStr)
+        if (isNaN(d.getTime())) return ""
+        return d.toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+        })
+    } catch {
+        return ""
+    }
+}
+
+function formatTime(dateStr) {
+    if (!dateStr) return ""
+    try {
+        const d = new Date(dateStr)
+        if (isNaN(d.getTime())) return ""
+        return d.toLocaleTimeString("en-IN", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        })
+    } catch {
+        return ""
+    }
+}
