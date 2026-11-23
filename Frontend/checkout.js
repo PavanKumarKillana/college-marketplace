@@ -85,6 +85,27 @@ fetch(API + "/api/cart", { headers: authHeaders() })
         showTotals()
     })
 
+function showOrderGuideModal() {
+    const buyerRoom = document.getElementById("buyer-room")
+    if (fulfillmentType === "delivery" && buyerRoom && !buyerRoom.value.trim()) {
+        toast("Please enter your room number for delivery", "error")
+        return
+    }
+    const modal = document.getElementById("order-guide-modal")
+    if (modal) modal.style.display = "flex"
+    else placeOrder()
+}
+
+function closeOrderGuideModal() {
+    const modal = document.getElementById("order-guide-modal")
+    if (modal) modal.style.display = "none"
+}
+
+function confirmAndPlaceOrder() {
+    closeOrderGuideModal()
+    placeOrder()
+}
+
 function placeOrder() {
     const buyerRoom = document.getElementById("buyer-room")
     if (fulfillmentType === "delivery" && buyerRoom && !buyerRoom.value.trim()) {

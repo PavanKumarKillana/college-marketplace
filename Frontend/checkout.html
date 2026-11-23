@@ -63,11 +63,46 @@
         </div>
 
         <!-- Place Order -->
-        <button class="btn btn-primary btn-full" onclick="placeOrder()"
+        <button class="btn btn-primary btn-full" onclick="showOrderGuideModal()"
                 style="padding:14px; font-size:1rem;">
             ✅ Place Order
         </button>
 
+    </div>
+</div>
+
+<!-- ORDER FLOW & NOTIFICATION GUIDE MODAL -->
+<div id="order-guide-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-dialog" style="max-width:440px;">
+        <div class="modal-header">
+            <h3 style="font-size:1.05rem; margin:0;">📋 How Order &amp; Delivery Works</h3>
+            <button onclick="closeOrderGuideModal()" class="modal-close-btn" aria-label="Close modal">×</button>
+        </div>
+        <div class="modal-body" style="font-size:0.86rem; color:var(--text-1); line-height:1.5;">
+            <div style="background:rgba(99,102,241,0.08); border-left:3px solid var(--brand); padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:12px;">
+                <strong>1. Direct Chat &amp; Price Negotiation</strong><br>
+                <span style="font-size:0.8rem; color:var(--text-2);">Once placed, open <strong>My Orders → Chat</strong> to speak with the seller or request custom price offers.</span>
+            </div>
+
+            <div style="background:rgba(245,158,11,0.08); border-left:3px solid #f59e0b; padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:12px;">
+                <strong>2. Check Email for Seller Replies</strong><br>
+                <span style="font-size:0.8rem; color:var(--text-2);">When a seller replies or accepts offers, you will receive an alert at your registered email <em>(check your Spam / Updates folder if you don't see it!)</em>.</span>
+            </div>
+
+            <div style="background:var(--bg-3); border-left:3px solid var(--border); padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:16px;">
+                <strong>3. Real-Time Tracking</strong><br>
+                <span style="font-size:0.8rem; color:var(--text-2);">You can also check <strong>My Orders</strong> anytime to view status updates and live chat messages.</span>
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-secondary" style="flex:1; font-size:0.85rem;" onclick="closeOrderGuideModal()">
+                    Review Cart
+                </button>
+                <button class="btn btn-primary" style="flex:1; font-size:0.85rem;" onclick="confirmAndPlaceOrder()">
+                    Confirm &amp; Place Order
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 

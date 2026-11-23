@@ -218,20 +218,40 @@ function updateStatus(req,res){
     if(allowed.indexOf(status)===-1){
         return res.json({success:false,message:"Invalid status"})
     }
-    if(status==="confirmed" || status==="ready" || status==="completed"){
-        orderModel.getOrderById(req.params.id,(err,rows)=>{
-            if(err || rows.length===0){
-                return res.json({success:false,message:"Order not found"})
-            }
-            if(rows[0].payment_status!=="verified"){
+
+    orderModel.getOrderById(req.params.id,(err,rows)=>{
+        if(err || !rows || rows.length===0){
+            return res.json({success:false,message:"Order not found"})
+        }
+        const currentOrder = rows[0]
+
+        // Validate seller ownership
+        if(currentOrder.seller_id !== req.sellerId){
+            return res.json({success:false,message:"You can only update your own orders"})
+        }
+
+        if(status==="confirmed" || status==="ready" || status==="completed"){
+            if(currentOrder.payment_status!=="verified"){
                 return res.json({success:false,message:"Verify payment before confirming the order"})
             }
+        }
+
+        // If cancelling an order that wasn't previously cancelled, restore inventory
+        if(status==="cancelled" && currentOrder.status!=="cancelled"){
+            orderModel.getOrderItems(req.params.id,(itErr,items)=>{
+                if(!itErr && items && items.length > 0){
+                    items.forEach(item => {
+                        productModel.increaseStock(item.product_id, item.quantity, ()=>{})
+                    })
+                }
+                doUpdate()
+            })
+        }
+        else{
             doUpdate()
-        })
-    }
-    else{
-        doUpdate()
-    }
+        }
+    })
+
     function doUpdate(){
         orderModel.updateOrderStatus(req.params.id,req.sellerId,status,(err,result)=>{
             if(err){

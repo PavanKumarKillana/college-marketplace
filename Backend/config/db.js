@@ -51,6 +51,15 @@ db.connect((err)=>{
         }
     })
 
+    db.query("SHOW COLUMNS FROM users LIKE 'created_at'", (err, res) => {
+        if (!err && (!res || res.length === 0)) {
+            db.query("ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP", (e) => {
+                if (e) console.error("Error adding created_at to users:", e.message)
+                else console.log("Added created_at column to users.")
+            })
+        }
+    })
+
     db.query("SHOW COLUMNS FROM sellers LIKE 'hostel_id'", (err, res) => {
         if (!err && (!res || res.length === 0)) {
             db.query("ALTER TABLE sellers ADD COLUMN hostel_id INT NULL", (e) => {

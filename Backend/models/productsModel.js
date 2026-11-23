@@ -174,6 +174,21 @@ function decreaseStock(productId,quantity,callback){
     )
 }
 
+function increaseStock(productId,quantity,callback){
+    db.query(
+        "UPDATE products SET stock = stock + ? WHERE id=?",
+        [quantity,productId],
+        (err,result)=>{
+            if(err){
+                callback(err,null)
+            }
+            else{
+                callback(null,result)
+            }
+        }
+    )
+}
+
 function setProductActive(id,isActive,callback){
     db.query("UPDATE products SET is_active=? WHERE id=?",[isActive,id],(err,result)=>{
         if(err){
@@ -195,5 +210,6 @@ module.exports={
     deleteProduct,
     updateProduct,
     decreaseStock,
+    increaseStock,
     setProductActive
 }
