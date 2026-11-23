@@ -89,10 +89,13 @@ function placeOrder(req,res){
                 const sellerId=sellerIds[index]
                 const lines=groups[sellerId]
                 let itemsTotal=0
+                let maxDeliveryCharge=0
                 for(let j=0;j<lines.length;j++){
                     itemsTotal += Number(lines[j].price) * Number(lines[j].quantity)
+                    const charge = Number(lines[j].delivery_charge || 0)
+                    if(charge > maxDeliveryCharge) maxDeliveryCharge = charge
                 }
-                const deliveryCharge=fulfillment==="delivery" ? Number(lines[0].delivery_charge || 0) : 0
+                const deliveryCharge=fulfillment==="delivery" ? maxDeliveryCharge : 0
                 orderModel.createOrder({
                     checkout_id:checkoutId,
                     buyer_id:req.userId,

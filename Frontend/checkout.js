@@ -29,8 +29,13 @@ function showTotals() {
     Object.keys(groups).forEach(key => {
         const lines = groups[key]
         let sub = 0
-        lines.forEach(l => { sub += Number(l.price) * Number(l.quantity) })
-        const delivery = fulfillmentType === "delivery" ? Number(lines[0].delivery_charge || 0) : 0
+        let maxDelivery = 0
+        lines.forEach(l => {
+            sub += Number(l.price) * Number(l.quantity)
+            const charge = Number(l.delivery_charge || 0)
+            if (charge > maxDelivery) maxDelivery = charge
+        })
+        const delivery = fulfillmentType === "delivery" ? maxDelivery : 0
         grand += sub + delivery
 
         // Seller header
