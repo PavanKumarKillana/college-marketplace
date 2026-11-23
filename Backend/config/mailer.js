@@ -27,16 +27,16 @@ function getAppUrl() {
 async function sendOtpEmail(toEmail, otpCode) {
     const transporter = createTransporter();
     const fromAddress = getFromAddress("Security");
-    const subject = "🔑 SnackDen - Password Reset OTP Code";
-    const textContent = `Your password reset OTP code is: ${otpCode}. It is valid for 10 minutes. If you did not request this reset, please ignore this email.`;
+    const subject = "SnackDen: Password reset verification code";
+    const textContent = `Hello,\n\nYour SnackDen verification code is: ${otpCode}\n\nThis code is valid for 10 minutes. If you did not request this, you can safely ignore this email.\n\nBest regards,\nSnackDen Team`;
     const htmlContent = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 500px; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <h2 style="color: #6366f1; margin-top:0;">SnackDen Campus Marketplace</h2>
-            <p>You requested a password reset for your SnackDen account.</p>
-            <div style="background: #f1f5f9; padding: 15px; text-align: center; border-radius: 6px; margin: 20px 0;">
-                <span style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #1e293b;">${otpCode}</span>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; padding: 24px; max-width: 520px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 6px;">
+            <p style="font-size: 16px; font-weight: 600; margin-top: 0; color: #111827;">SnackDen Campus Marketplace</p>
+            <p style="font-size: 14px; line-height: 1.5; color: #374151;">You requested a password reset for your SnackDen account. Use the code below to continue:</p>
+            <div style="background-color: #f3f4f6; border-radius: 4px; padding: 12px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 26px; font-weight: 700; letter-spacing: 6px; color: #111827;">${otpCode}</span>
             </div>
-            <p style="font-size: 0.9em; color: #64748b;">This OTP code is valid for <strong>10 minutes</strong>. If you did not request this reset, please ignore this email.</p>
+            <p style="font-size: 13px; color: #6b7280; line-height: 1.5; margin-bottom: 0;">This code will expire in 10 minutes. If you did not make this request, please disregard this email.</p>
         </div>
     `;
 
@@ -50,14 +50,14 @@ async function sendOtpEmail(toEmail, otpCode) {
                 text: textContent,
                 html: htmlContent
             });
-            console.log(`[Mailer] OTP email successfully sent to ${toEmail}`);
+            console.log(`[Mailer] OTP email sent to ${toEmail}`);
             return { sent: true };
         } catch (err) {
             console.error(`[Mailer] Error sending OTP email: ${err.message}`);
             return { sent: false, error: err.message };
         }
     } else {
-        console.log(`[Mailer DEV MODE] SMTP credentials not configured in .env. Generated OTP for ${toEmail} is: ${otpCode}`);
+        console.log(`[Mailer DEV MODE] OTP for ${toEmail}: ${otpCode}`);
         return { sent: false, dev_mode: true };
     }
 }
@@ -66,16 +66,29 @@ async function sendOrderNotificationEmail(toEmail, orderId, buyerName, totalAmou
     const transporter = createTransporter();
     const appUrl = getAppUrl();
     const fromAddress = getFromAddress("Orders");
-    const subject = `📦 SnackDen: New Order #${orderId} from ${buyerName}`;
-    const textContent = `You have a new order!\n\n${buyerName} just placed Order #${orderId} for ₹${totalAmount}.\n\nView details: ${appUrl}/seller.html`;
+    const subject = `SnackDen: Order #${orderId} received from ${buyerName}`;
+    const textContent = `Hello,\n\nYou have received a new order on SnackDen.\n\nOrder #${orderId}\nBuyer: ${buyerName}\nTotal Amount: Rs. ${totalAmount}\n\nPlease visit your seller dashboard to review the order details and manage fulfillment: ${appUrl}/seller.html\n\nBest regards,\nSnackDen Team`;
     const htmlContent = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 500px; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <h2 style="color: #4f46e5; margin-top:0;">🎉 You have a new order!</h2>
-            <p style="font-size: 15px; color:#1e293b;"><strong>${buyerName}</strong> just placed Order <strong>#${orderId}</strong> for <strong>₹${totalAmount}</strong>.</p>
-            <p style="font-size: 14px; color:#64748b;">Open your Seller Dashboard to prepare and confirm the order:</p>
-            <div style="margin-top: 20px;">
-                <a href="${appUrl}/seller.html" style="display:inline-block; padding:12px 24px; background:#4f46e5; color:#ffffff; text-decoration:none; border-radius:6px; font-weight:bold; font-size:14px;">View Order in Dashboard</a>
-            </div>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; padding: 24px; max-width: 520px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 6px;">
+            <p style="font-size: 16px; font-weight: 600; margin-top: 0; color: #111827;">SnackDen Orders</p>
+            <p style="font-size: 14px; line-height: 1.5; color: #374151;">You have received a new order on your store:</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Order ID:</td>
+                    <td style="padding: 6px 0; font-weight: 600; text-align: right;">#${orderId}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Buyer:</td>
+                    <td style="padding: 6px 0; font-weight: 600; text-align: right;">${buyerName}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280;">Total Amount:</td>
+                    <td style="padding: 6px 0; font-weight: 600; text-align: right; color: #111827;">Rs. ${totalAmount}</td>
+                </tr>
+            </table>
+            <p style="margin: 20px 0 0 0;">
+                <a href="${appUrl}/seller.html" style="display: inline-block; background-color: #111827; color: #ffffff; text-decoration: none; padding: 10px 18px; border-radius: 4px; font-size: 13px; font-weight: 600;">View in Seller Dashboard</a>
+            </p>
         </div>
     `;
 
@@ -92,7 +105,7 @@ async function sendOrderNotificationEmail(toEmail, orderId, buyerName, totalAmou
             console.log(`[Mailer] Order alert sent to ${toEmail}`);
         } catch (err) { console.error("[Mailer] Order email err:", err.message); }
     } else {
-        console.log(`[Mailer DEV MODE] Order email for Order #${orderId} would be sent to ${toEmail}`);
+        console.log(`[Mailer DEV MODE] Order #${orderId} notification to ${toEmail}`);
     }
 }
 
@@ -100,18 +113,18 @@ async function sendChatNotificationEmail(toEmail, orderId, senderName, message) 
     const transporter = createTransporter();
     const appUrl = getAppUrl();
     const fromAddress = getFromAddress("Chat");
-    const subject = `💬 SnackDen: New Message for Order #${orderId}`;
-    const textContent = `New message from ${senderName} regarding Order #${orderId}:\n\n"${message}"\n\nReply at: ${appUrl}/orders.html`;
+    const subject = `SnackDen: New message regarding Order #${orderId}`;
+    const textContent = `Hello,\n\nYou have a new message from ${senderName} regarding Order #${orderId}:\n\n"${message}"\n\nYou can reply directly on SnackDen: ${appUrl}/orders.html\n\nBest regards,\nSnackDen Team`;
     const htmlContent = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 500px; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <h3 style="color: #4f46e5; margin-top:0;">New message from ${senderName}</h3>
-            <p style="font-size:14px; color:#64748b; margin-bottom:8px;">Regarding Order <strong>#${orderId}</strong>:</p>
-            <div style="background: #f8fafc; border-left: 3px solid #4f46e5; padding: 14px; border-radius: 4px; margin: 15px 0; font-size: 14px; color: #1e293b; font-style: italic;">
-                "${message}"
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; padding: 24px; max-width: 520px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 6px;">
+            <p style="font-size: 16px; font-weight: 600; margin-top: 0; color: #111827;">SnackDen Chat</p>
+            <p style="font-size: 14px; line-height: 1.5; color: #374151;">You have a new message from <strong>${senderName}</strong> regarding <strong>Order #${orderId}</strong>:</p>
+            <div style="background-color: #f9fafb; border-left: 3px solid #6b7280; padding: 12px 14px; margin: 16px 0; font-size: 14px; color: #374151;">
+                ${message}
             </div>
-            <div style="margin-top: 20px;">
-                <a href="${appUrl}/orders.html" style="display:inline-block; padding:12px 24px; background:#4f46e5; color:#ffffff; text-decoration:none; border-radius:6px; font-weight:bold; font-size:14px;">Open Order Chat</a>
-            </div>
+            <p style="margin: 20px 0 0 0;">
+                <a href="${appUrl}/orders.html" style="display: inline-block; background-color: #111827; color: #ffffff; text-decoration: none; padding: 10px 18px; border-radius: 4px; font-size: 13px; font-weight: 600;">Reply to Message</a>
+            </p>
         </div>
     `;
 
@@ -128,7 +141,7 @@ async function sendChatNotificationEmail(toEmail, orderId, senderName, message) 
             console.log(`[Mailer] Chat notification sent to ${toEmail}`);
         } catch (err) { console.error("[Mailer] Chat email err:", err.message); }
     } else {
-        console.log(`[Mailer DEV MODE] Chat notification for Order #${orderId} would be sent to ${toEmail}`);
+        console.log(`[Mailer DEV MODE] Chat alert for Order #${orderId} to ${toEmail}`);
     }
 }
 
